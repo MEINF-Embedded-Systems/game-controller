@@ -8,3 +8,14 @@ services:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
+  
+  game-controller:
+    container_name: game-controller
+    build:
+      context: ./game-controller
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mosquitto
+
