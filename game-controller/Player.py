@@ -1,13 +1,13 @@
-# Player class with player_id, points and connection status
+# Player class with id, points and connection status
 class Player:
-    def __init__(self, player_id: int) -> None:
-        self.player_id = player_id
+    def __init__(self, id: int) -> None:
+        self.id = id
         self.points = 0
         self.connected = False
         self.position = 0
 
     def __str__(self) -> str:
-        return f"Player {self.player_id} - Points: {self.points} - Connected: {self.connected}"
+        return f"Player {self.id} - Points: {self.points} - Connected: {self.connected}"
 
     def gainPoints(self, points: int) -> None:
         self.points += points
@@ -22,3 +22,6 @@ class Player:
 
     def moveBackward(self, steps: int, board_size: int) -> None:
         self.position = (self.position - steps) % board_size
+
+    def __eq__(self, value):
+        return self.id == value.id
