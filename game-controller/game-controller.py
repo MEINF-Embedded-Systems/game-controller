@@ -85,16 +85,17 @@ def waitForPlayers() -> None:
     print("Waiting for players to connect...")
     waitEvent(waitPlayersEvent)
     print("All players connected!")
+    time.sleep(2)
 
 
 def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
     player_id = int(message.topic.split("/")[2])
-    if 1 <= player_id <= len(players):
+    if 1 <= player_id <= len(players) and not players[player_id - 1].connected:
         players[player_id - 1].connected = True
         print(f"Player {player_id} connected")
         showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
         if all(player.connected for player in players):
-            waitPlayersEvent.set()
+            waitPlayersEvent.set() 
     else:
         print(f"Player {player_id} is not allowed to connect")
 
