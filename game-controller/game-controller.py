@@ -7,7 +7,7 @@ from threading import Event
 from colorama import Fore
 from Player import Player
 from Board import Board
-from Message import Message
+from Message import LCDMessage
 
 # Debug mode
 DEBUG = True
@@ -41,7 +41,7 @@ board = Board()
 
 # Callbacks
 def on_message(client, userdata, message):
-    printDebug(f"Message recevived: {message.payload.decode()}")
+    printDebug(f"LCDMessage recevived: {message.payload.decode()}")
     match current_state:
         case GameState.WAITING_FOR_PLAYERS:
             managePlayersConnection(message)
@@ -88,6 +88,7 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
     if 1 <= player_id <= len(players):
         players[player_id - 1].connected = True
         print(f"Player {player_id} connected")
+        showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
         if all(player.connected for player in players):
             waitPlayersEvent.set()
     else:
@@ -111,6 +112,9 @@ def initGame() -> None:
     global turn
 
     setGameState(GameState.PLAYING)
+    showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
+    time.sleep(2)
+
     while current_state != GameState.GAME_OVER:
         playTurn(players[turn])
         showStats()
@@ -120,14 +124,20 @@ def initGame() -> None:
 
 def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
-    showInLCD(player.id, Message(top="Your turn".center(16), time=2000))
+    
+    showInLCD(player.id, LCDMessage(top="Your turn".center(16)))
+    showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} turn!".center(16)))
+    
+    time.sleep(2)
+    
     movePlayer(player)
     playCell(player, board.getCellType(player.position))
 
 
 def movePlayer(player: Player) -> None:
     player.moveForward(rollDice(player), board.size)
-    showInLCD(player.id, Message(top=f"Moved to cell {player.position}", time=2000))
+    # TODO: Interact with hall sensor
+    showInLCD(player.id, LCDMessage(top=f"Moved to cell {player.position}"))
     print(f"Player {player.id} moved to cell {player.position} - {board.getCellName(player.position)}")
 
 
@@ -136,11 +146,11 @@ def rollDice(player) -> int:
 
     topic = PLAYERS_BUTTON_TOPIC.format(id=player.id)
     client.subscribe(topic)
-    message = Message(top="Roll your dice".center(16), down="Press the button".center(16), time=2000)
+    message = LCDMessage(top="Roll the dice".center(16), down="Press the button".center(16))
     showInLCD(player.id, message)
     waitEvent(waitDiceEvent)
     result = Random().randint(1, 1)
-    message = Message(top="Dice rolled".center(16), down=str(result).center(16), time=2000)
+    message = LCDMessage(top="Dice rolled".center(16), down=str(result).center(16))
     showInLCD(player.id, message)
     client.unsubscribe(topic)
 
@@ -175,31 +185,29 @@ def playCell(player: Player, cell_type: CellType) -> None:
 
 
 def gainPoints(player: Player) -> None:
-    points = 10
+    points = Random().randint(5, 10)
     player.gainPoints(points)
-    messagePlayer = Message(top="You gained".center(16), down=f"{points:2d} points".center(16), time=2000)
-    messageOther = Message(
+    messagePlayer = LCDMessage(top="You gained".center(16), down=f"{points:2d} points".center(16))
+    messageOther = LCDMessage(
         top=f"Player {player.id} gained".center(16), down=f"{points:2d} points".center(16), time=2000
     )
     showInLCD(player.id, messagePlayer)
-    for other in players:
-        if other != player:
-            showInLCD(other.id, messageOther)
+    showInOtherLCD(player.id, messageOther)
 
 
 def losePoints(player: Player) -> None:
-    points = 10
+    points = Random().randint(1, 5)
     player.losePoints(points)
-    messagePlayer = Message(top="You lost".center(16), down=f"{points:2d} points".center(16), time=2000)
-    messageOther = Message(top=f"Player {player.id} lost".center(16), down=f"{points:2d} points".center(16), time=2000)
+    messagePlayer = LCDMessage(top="You lost".center(16), down=f"{points:2d} points".center(16), time=2000)
+    messageOther = LCDMessage(
+        top=f"Player {player.id} lost".center(16), down=f"{points:2d} points".center(16), time=2000
+    )
     showInLCD(player.id, messagePlayer)
-    for other in players:
-        if other != player:
-            showInLCD(other.id, messageOther)
+    showInOtherLCD(player.id, messageOther)
 
 
 def skipTurn(player: Player) -> None:
-    message = Message(top="Skip turn".center(16), time=2000)
+    message = LCDMessage(top="Skip turn".center(16), time=2000)
     showInLCD(player.id, message)
 
 
@@ -217,15 +225,25 @@ def randomEvent(player: Player) -> None:
     playCell(player, random_event)
 
 
-def showInLCD(player_id, message: Message) -> None:
+def showInLCD(player_id, message: LCDMessage) -> None:
     topic = PLAYERS_LCD_TOPIC.format(id=player_id)
     payload = message.toJson()
     client.publish(topic, payload)
     printDebug(f"(Player {player_id}) {message}")
 
 
+def showInOtherLCD(player_id, message: LCDMessage) -> None:
+    for other in players:
+        if other.id != player_id:
+            showInLCD(other.id, message)
+
+def showInAllLCD(message: LCDMessage) -> None:
+    for player in players:
+        showInLCD(player.id, message)
+
+
 def showStats() -> None:
-    message = Message(
+    message = LCDMessage(
         top=f"Player {players[0].id}: {players[0].points} points",
         down=f"Player {players[1].id}: {players[1].points} points",
         time=2000,

@@ -1,7 +1,7 @@
 import json
 
 
-class Message:
+class LCDMessage:
     def __init__(self, top: str = "", down: str = "", time: int = 0) -> None:
         self.top = top
         self.down = down
