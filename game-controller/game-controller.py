@@ -47,6 +47,10 @@ def on_message(client, userdata, message):
             managePlayersConnection(message)
         case GameState.ROLLING_DICE:
             manageDiceRoll(message)
+        case GameState.PLAYING:
+            pass
+        case GameState.GAME_OVER:
+            pass
         case _:
             print("No state defined")
 
@@ -96,11 +100,12 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
 
 
 def manageDiceRoll(message: mqtt.MQTTMessage) -> None:
-    player_id = int(message.topic.split("/")[2])
-    if player_id == players[turn].id:
-        waitDiceEvent.set()
-    else:
-        print(f"Player {player_id} is not allowed to roll the dice")
+    if (message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id)):
+        player_id = int(message.topic.split("/")[2])
+        if player_id == players[turn].id:
+            waitDiceEvent.set()
+        else:
+            print(f"Player {player_id} is not allowed to roll the dice")
 
 
 def closeMqttConnection(client: mqtt.Client) -> None:
@@ -113,7 +118,7 @@ def initGame() -> None:
 
     setGameState(GameState.PLAYING)
     showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
-    time.sleep(2)
+    time.sleep(5)
 
     while current_state != GameState.GAME_OVER:
         playTurn(players[turn])
