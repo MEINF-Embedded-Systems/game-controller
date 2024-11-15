@@ -95,13 +95,13 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
         print(f"Player {player_id} connected")
         showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
         if all(player.connected for player in players):
-            waitPlayersEvent.set() 
+            waitPlayersEvent.set()
     else:
         print(f"Player {player_id} is not allowed to connect")
 
 
 def manageDiceRoll(message: mqtt.MQTTMessage) -> None:
-    if (message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id)):
+    if message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id):
         player_id = int(message.topic.split("/")[2])
         if player_id == players[turn].id:
             waitDiceEvent.set()
@@ -130,12 +130,12 @@ def initGame() -> None:
 
 def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
-    
+
     showInLCD(player.id, LCDMessage(top="Your turn".center(16)))
     showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} turn!".center(16)))
-    
-    time.sleep(2)
-    
+
+    time.sleep(3)
+
     movePlayer(player)
     playCell(player, board.getCellType(player.position))
 
@@ -145,6 +145,7 @@ def movePlayer(player: Player) -> None:
     # TODO: Interact with hall sensor
     showInLCD(player.id, LCDMessage(top=f"Moved to cell {player.position}"))
     print(f"Player {player.id} moved to cell {player.position} - {board.getCellName(player.position)}")
+    time.sleep(4)
 
 
 def rollDice(player) -> int:
@@ -161,6 +162,7 @@ def rollDice(player) -> int:
     client.unsubscribe(topic)
 
     setGameState(GameState.PLAYING)
+    time.sleep(4)
     return result
 
 
@@ -177,13 +179,13 @@ def playCell(player: Player, cell_type: CellType) -> None:
         case CellType.LP:
             losePoints(player)
         case CellType.MF:
-            pass
+            moveForward(player)
         case CellType.MG:
             pass
         case CellType.MB:
-            pass
+            moveBackward(player)
         case CellType.DE:
-            pass
+            deathEvent(player)
         case CellType.SK:
             skipTurn(player)
         case CellType.RE:
@@ -191,44 +193,84 @@ def playCell(player: Player, cell_type: CellType) -> None:
 
 
 def gainPoints(player: Player) -> None:
+    messagePlayer = LCDMessage(top="Gain Points".center(16))
+    showInLCD(player.id, messagePlayer)
+    time.sleep(4)
     points = Random().randint(5, 10)
     player.gainPoints(points)
     messagePlayer = LCDMessage(top="You gained".center(16), down=f"{points:2d} points".center(16))
-    messageOther = LCDMessage(
-        top=f"Player {player.id} gained".center(16), down=f"{points:2d} points".center(16), time=2000
-    )
+    messageOther = LCDMessage(top=f"Player {player.id} gained".center(16), down=f"{points:2d} points".center(16))
     showInLCD(player.id, messagePlayer)
     showInOtherLCD(player.id, messageOther)
+    time.sleep(4)
 
 
 def losePoints(player: Player) -> None:
+    messagePlayer = LCDMessage(top="Lose Points".center(16))
+    showInLCD(player.id, messagePlayer)
+    time.sleep(4)
     points = Random().randint(1, 5)
     player.losePoints(points)
-    messagePlayer = LCDMessage(top="You lost".center(16), down=f"{points:2d} points".center(16), time=2000)
-    messageOther = LCDMessage(
-        top=f"Player {player.id} lost".center(16), down=f"{points:2d} points".center(16), time=2000
-    )
+    messagePlayer = LCDMessage(top="You lost".center(16), down=f"{points:2d} points".center(16))
+    messageOther = LCDMessage(top=f"Player {player.id} lost".center(16), down=f"{points:2d} points".center(16))
     showInLCD(player.id, messagePlayer)
     showInOtherLCD(player.id, messageOther)
+    time.sleep(4)
 
 
 def skipTurn(player: Player) -> None:
-    message = LCDMessage(top="Skip turn".center(16), time=2000)
+    message = LCDMessage(top="Skip turn".center(16))
     showInLCD(player.id, message)
+    time.sleep(4)
 
 
 def randomEvent(player: Player) -> None:
     eventProbs = {
-        CellType.MF: 0.1,
-        CellType.MB: 0.1,
-        CellType.GP: 0.1,
-        CellType.LP: 0.1,
-        CellType.DE: 0.1,
-        CellType.SK: 0.1,
+        CellType.MF: 1 / 5,
+        CellType.MB: 1 / 5,
+        CellType.GP: 1 / 5,
+        CellType.LP: 1 / 5,
+        CellType.SK: 1 / 5,
     }
     events, probs = zip(*eventProbs.items())
     random_event = Random().choices(events, probs)[0]
     playCell(player, random_event)
+
+
+def moveForward(player: Player) -> None:
+    message = LCDMessage(top="Move Forward".center(16))
+    showInLCD(player.id, message)
+    time.sleep(4)
+    steps = Random().randint(1, 3)
+    player.moveForward(steps, board.size)
+    message = LCDMessage(top=f"Move {steps}".center(16), down="steps forward".center(16))
+    showInLCD(player.id, message)
+    time.sleep(4)
+
+
+def moveBackward(player: Player) -> None:
+    message = LCDMessage(top="Move Backwards".center(16))
+    showInLCD(player.id, message)
+    time.sleep(4)
+    steps = Random().randint(1, 3)
+    player.moveBackward(steps)
+    message = LCDMessage(top=f"Move {steps}".center(16), down="steps backward".center(16))
+    showInLCD(player.id, message)
+    time.sleep(4)
+
+
+def deathEvent(player: Player) -> None:
+    message = LCDMessage(top="Death Event".center(16))
+    showInLCD(player.id, message)
+    time.sleep(4)
+    player.resetPosition()
+    message = LCDMessage(top="You died".center(16))
+    showInLCD(player.id, message)
+    time.sleep(2)
+    message = LCDMessage(top="You lose".center(16), down="all your points".center(16))
+    showInLCD(player.id, message)
+    player.losePoints(player.points)
+    time.sleep(4)
 
 
 def showInLCD(player_id, message: LCDMessage) -> None:
@@ -243,6 +285,7 @@ def showInOtherLCD(player_id, message: LCDMessage) -> None:
         if other.id != player_id:
             showInLCD(other.id, message)
 
+
 def showInAllLCD(message: LCDMessage) -> None:
     for player in players:
         showInLCD(player.id, message)
@@ -250,12 +293,12 @@ def showInAllLCD(message: LCDMessage) -> None:
 
 def showStats() -> None:
     message = LCDMessage(
-        top=f"Player {players[0].id}: {players[0].points} points",
-        down=f"Player {players[1].id}: {players[1].points} points",
-        time=2000,
+        top=f"P{players[0].id}: {players[0].points} points",
+        down=f"P{players[1].id}: {players[1].points} points",
     )
     for player in players:
         showInLCD(player.id, message)
+    time.sleep(5)
 
 
 if __name__ == "__main__":
