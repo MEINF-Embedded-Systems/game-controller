@@ -8,6 +8,7 @@ from colorama import Fore
 from Player import Player
 from Board import Board
 from Message import LCDMessage
+from Minigame import Minigame
 
 # Debug mode
 DEBUG = True
@@ -30,6 +31,8 @@ PLAYERS_LED_TOPIC = "game/players/{id}/components/led"
 PLAYERS_BUTTON_TOPIC = "game/players/{id}/components/button"
 PLAYERS_TURN_TOPIC = "game/players/{id}/turn"
 
+MINIGAMES_TOPIC = "game/minigame"
+
 
 # Events
 waitPlayersEvent = Event()
@@ -39,6 +42,16 @@ waitDiceEvent = Event()
 current_state = GameState.WAITING_FOR_PLAYERS
 turn = 0
 board = Board()
+
+minigames = [
+    Minigame.Hot_Potato,
+    Minigame.Blind_Timer,
+    Minigame.Number_Guesser,
+    Minigame.Tug_of_War,
+    Minigame.Rock_Paper_Scissors,
+    Minigame.Last_Stick_Standing,
+    Minigame.Quick_Reflexes,
+]
 
 
 # Callbacks
@@ -139,6 +152,7 @@ def initGame() -> None:
     showInAllLCD(message)
     time.sleep(5)
 
+
 def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
     client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), "1")
@@ -194,7 +208,7 @@ def playCell(player: Player, cell_type: CellType) -> None:
         case CellType.MF:
             moveForward(player)
         case CellType.MG:
-            pass
+            miniGame()
         case CellType.MB:
             moveBackward(player)
         case CellType.DE:
@@ -319,26 +333,44 @@ def showStats() -> None:
     for player in players:
         showInLCD(player.id, message)
     time.sleep(5)
-    
+
+
+def miniGame() -> None:
+    setGameState(GameState.MINIGAME)
+    minigame = Random.choice(minigames)
+    print(f"Playing minigame: {minigame.name}")
+    client.publish(MINIGAMES_TOPIC, minigame.value)
+    match minigame:
+        case Minigame.Hot_Potato:
+            pass
+        case Minigame.Blind_Timer:
+            pass
+        case Minigame.Number_Guesser:
+            
+            mgNumberGuesser()
+        case Minigame.Tug_of_War:
+            pass
+        case Minigame.Rock_Paper_Scissors:
+            pass
+        case Minigame.Last_Stick_Standing:
+            pass
+        case Minigame.Quick_Reflexes:
+            pass
+
+
+
 def mgNumberGuesser() -> None:
+    minigame = NumberGuesser(NUM_PLAYERS)
     minGuess = 1
     maxGuess = 5
-    guess = Random.randint(minGuess, maxGuess)
+    guess = Random().randint(minGuess, maxGuess)
     
-    message = LCDMessage(top="Number Guesser".center(16))
-    showInAllLCD(message)
-    time.sleep(4)
-    message = LCDMessage(top="Select a number", down=f"between {minGuess} and {maxGuess}")
-    showInAllLCD(message)
-    time.sleep(2)
-    message = LCDMessage(top="Press: Change number", down="Hold: Select number")
-    showInAllLCD(message)
-    client.subscribe(PLAYERS_BUTTON_TOPIC.format(id="+"))
-    waitForEvent(numberGuesserEvent)
+    # Wait for players to guess
+    
+
 
 def handleNumberGuesser(message: mqtt.MQTTMessage):
     player_id = message.topic
-    
 
 
 if __name__ == "__main__":
