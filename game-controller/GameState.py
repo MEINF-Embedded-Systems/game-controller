@@ -6,3 +6,4 @@ class GameState(Enum):
     PLAYING = 1
     ROLLING_DICE = 2
     GAME_OVER = 3
+    NUMBER_GUESSER = 4

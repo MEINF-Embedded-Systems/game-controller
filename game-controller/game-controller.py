@@ -28,6 +28,8 @@ PLAYERS_LCD_TOPIC = "game/players/{id}/components/lcd"
 PLAYERS_BUZZER_TOPIC = "game/players/{id}/components/buzzer"
 PLAYERS_LED_TOPIC = "game/players/{id}/components/led"
 PLAYERS_BUTTON_TOPIC = "game/players/{id}/components/button"
+PLAYERS_TURN_TOPIC = "game/players/{id}/turn"
+
 
 # Events
 waitPlayersEvent = Event()
@@ -41,12 +43,14 @@ board = Board()
 
 # Callbacks
 def on_message(client, userdata, message):
-    printDebug(f"LCDMessage recevived: {message.payload.decode()}")
+    # printDebug(f"LCDMessage recevived: {message.payload.decode()}")
     match current_state:
         case GameState.WAITING_FOR_PLAYERS:
             managePlayersConnection(message)
         case GameState.ROLLING_DICE:
             manageDiceRoll(message)
+        case GameState.NUMBER_GUESSER:
+            handleNumberGuesser(message)
         case GameState.PLAYING:
             pass
         case GameState.GAME_OVER:
@@ -90,12 +94,13 @@ def waitForPlayers() -> None:
 
 def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
     player_id = int(message.topic.split("/")[2])
-    if 1 <= player_id <= len(players) and not players[player_id - 1].connected:
-        players[player_id - 1].connected = True
-        print(f"Player {player_id} connected")
-        showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
-        if all(player.connected for player in players):
-            waitPlayersEvent.set()
+    if 1 <= player_id <= len(players):
+        if not players[player_id - 1].connected:
+            players[player_id - 1].connected = True
+            print(f"Player {player_id} connected")
+            showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
+            if all(player.connected for player in players):
+                waitPlayersEvent.set()
     else:
         print(f"Player {player_id} is not allowed to connect")
 
@@ -116,7 +121,7 @@ def closeMqttConnection(client: mqtt.Client) -> None:
 
 def initGame() -> None:
     global turn
-
+    winner = None
     setGameState(GameState.PLAYING)
     showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
     time.sleep(5)
@@ -126,10 +131,17 @@ def initGame() -> None:
         showStats()
         turn = (turn + 1) % NUM_PLAYERS
         time.sleep(2)
+        if players[turn].points >= WIN_POINTS:
+            winner = players[turn]
+            setGameState(GameState.GAME_OVER)
 
+    message = LCDMessage(top="Game Over".center(16), down=f"Player {winner.id} wins!".center(16))
+    showInAllLCD(message)
+    time.sleep(5)
 
 def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
+    client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), "1")
 
     showInLCD(player.id, LCDMessage(top="Your turn".center(16)))
     showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} turn!".center(16)))
@@ -138,6 +150,7 @@ def playTurn(player: Player) -> None:
 
     movePlayer(player)
     playCell(player, board.getCellType(player.position))
+    client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), "0")
 
 
 def movePlayer(player: Player) -> None:
@@ -156,7 +169,7 @@ def rollDice(player) -> int:
     message = LCDMessage(top="Roll the dice".center(16), down="Press the button".center(16))
     showInLCD(player.id, message)
     waitEvent(waitDiceEvent)
-    result = Random().randint(1, 1)
+    result = Random().randint(1, 6)
     message = LCDMessage(top="Dice rolled".center(16), down=str(result).center(16))
     showInLCD(player.id, message)
     client.unsubscribe(topic)
@@ -234,7 +247,11 @@ def randomEvent(player: Player) -> None:
     }
     events, probs = zip(*eventProbs.items())
     random_event = Random().choices(events, probs)[0]
+    message = LCDMessage(top="Random Event".center(16))
+    showInLCD(player.id, message)
+    time.sleep(4)
     playCell(player, random_event)
+    time.sleep(4)
 
 
 def moveForward(player: Player) -> None:
@@ -246,6 +263,8 @@ def moveForward(player: Player) -> None:
     message = LCDMessage(top=f"Move {steps}".center(16), down="steps forward".center(16))
     showInLCD(player.id, message)
     time.sleep(4)
+    playCell(player, board.getCellType(player.position))
+    time.sleep(4)
 
 
 def moveBackward(player: Player) -> None:
@@ -253,9 +272,11 @@ def moveBackward(player: Player) -> None:
     showInLCD(player.id, message)
     time.sleep(4)
     steps = Random().randint(1, 3)
-    player.moveBackward(steps)
+    player.moveBackward(steps, board.size)
     message = LCDMessage(top=f"Move {steps}".center(16), down="steps backward".center(16))
     showInLCD(player.id, message)
+    time.sleep(4)
+    playCell(player, board.getCellType(player.position))
     time.sleep(4)
 
 
@@ -263,7 +284,6 @@ def deathEvent(player: Player) -> None:
     message = LCDMessage(top="Death Event".center(16))
     showInLCD(player.id, message)
     time.sleep(4)
-    player.resetPosition()
     message = LCDMessage(top="You died".center(16))
     showInLCD(player.id, message)
     time.sleep(2)
@@ -299,6 +319,26 @@ def showStats() -> None:
     for player in players:
         showInLCD(player.id, message)
     time.sleep(5)
+    
+def mgNumberGuesser() -> None:
+    minGuess = 1
+    maxGuess = 5
+    guess = Random.randint(minGuess, maxGuess)
+    
+    message = LCDMessage(top="Number Guesser".center(16))
+    showInAllLCD(message)
+    time.sleep(4)
+    message = LCDMessage(top="Select a number", down=f"between {minGuess} and {maxGuess}")
+    showInAllLCD(message)
+    time.sleep(2)
+    message = LCDMessage(top="Press: Change number", down="Hold: Select number")
+    showInAllLCD(message)
+    client.subscribe(PLAYERS_BUTTON_TOPIC.format(id="+"))
+    waitForEvent(numberGuesserEvent)
+
+def handleNumberGuesser(message: mqtt.MQTTMessage):
+    player_id = message.topic
+    
 
 
 if __name__ == "__main__":
@@ -306,8 +346,6 @@ if __name__ == "__main__":
         client = createMqttClient(MQTT_BROKER, MQTT_PORT, CLIENT_ID)
         waitForPlayers()
         initGame()
-        for player in players:
-            print(player)
     except KeyboardInterrupt:
         print("Program terminated by user")
     except Exception as e:
