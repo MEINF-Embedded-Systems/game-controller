@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Minigame(Enum):
+class MinigameType(Enum):
     Hot_Potato = 1
     Blind_Timer = 2
     Number_Guesser = 3
