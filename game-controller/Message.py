@@ -12,3 +12,14 @@ class LCDMessage:
 
     def toJson(self) -> str:
         return json.dumps({"top": self.top, "down": self.down, "time": self.time})
+    
+class BuzzerMessage:
+    def __init__(self, tones: list[int], duration: list[int]) -> None:
+        self.tones = tones
+        self.duration = duration
+        
+    def __str__(self) -> str:
+        return str(list(zip(self.tones, self.duration)))
+
+    def toJson(self) -> str:
+        return json.dumps({"tones": self.tones, "duration": self.duration})

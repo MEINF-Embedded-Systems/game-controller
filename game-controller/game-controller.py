@@ -4,11 +4,12 @@ from CellType import CellType
 import paho.mqtt.client as mqtt
 from GameState import GameState
 from threading import Event
-from colorama import Fore
 from Player import Player
 from Board import Board
 from Message import LCDMessage
 from minigames import *
+from Utils import Utils
+import Melodies
 
 # Debug mode
 DEBUG = True
@@ -33,7 +34,6 @@ PLAYERS_TURN_TOPIC = "game/players/{id}/turn"
 
 MINIGAMES_TOPIC = "game/minigame"
 
-
 # Events
 waitPlayersEvent = Event()
 waitDiceEvent = Event()
@@ -53,33 +53,28 @@ minigames = {
     MinigameType.Quick_Reflexes: Minigame,
 }
 
-current_minigame = None
+current_minigame: Minigame = None
 
 # Callbacks
 def on_message(client, userdata, message):
-    # printDebug(f"LCDMessage recevived: {message.payload.decode()}")
+    # utils.printDebug(f"LCDMessage recevived: {message.payload.decode()}")
     match current_state:
         case GameState.WAITING_FOR_PLAYERS:
             managePlayersConnection(message)
         case GameState.ROLLING_DICE:
             manageDiceRoll(message)
-        case GameState.PLAYING:
+        case GameState.MINIGAME:
             current_minigame.handleMQTTMessage(message)
         case GameState.GAME_OVER:
             pass
         case _:
-            print("No state defined")
-
-
-# Functions
-def printDebug(message: str) -> None:
-    if DEBUG:
-        print(Fore.YELLOW + f"DEBUG: {message}" + Fore.RESET)
+            pass
+            # print("No state defined")
 
 
 def setGameState(state: GameState) -> None:
     global current_state
-    printDebug(f"Game state changed to {state.name}")
+    utils.printDebug(f"Game state changed to {state.name}")
     current_state = state
 
 
@@ -110,7 +105,7 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
         if not players[player_id - 1].connected:
             players[player_id - 1].connected = True
             print(f"Player {player_id} connected")
-            showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
+            utils.showInLCD(player_id, LCDMessage(top="Connected".center(16), down=f"You are Player {player_id}"))
             if all(player.connected for player in players):
                 waitPlayersEvent.set()
     else:
@@ -135,7 +130,9 @@ def initGame() -> None:
     global turn
     winner = None
     setGameState(GameState.PLAYING)
-    showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
+    utils.showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
+    utils.playInAllBuzzer(Melodies.WINNING_SOUND)
+    utils.playInAllBuzzer(Melodies.LOSING_SOUND)
     time.sleep(5)
 
     while current_state != GameState.GAME_OVER:
@@ -148,7 +145,7 @@ def initGame() -> None:
             setGameState(GameState.GAME_OVER)
 
     message = LCDMessage(top="Game Over".center(16), down=f"Player {winner.id} wins!".center(16))
-    showInAllLCD(message)
+    utils.showInAllLCD(message)
     time.sleep(5)
 
 
@@ -156,20 +153,21 @@ def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
     client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), "1")
 
-    showInLCD(player.id, LCDMessage(top="Your turn".center(16)))
-    showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} turn!".center(16)))
+    utils.showInLCD(player.id, LCDMessage(top="Your turn".center(16)))
+    utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} turn!".center(16)))
 
     time.sleep(3)
 
     movePlayer(player)
-    playCell(player, board.getCellType(player.position))
+    # playCell(player, board.getCellType(player.position))
+    playCell(player, CellType.MG)
     client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), "0")
 
 
 def movePlayer(player: Player) -> None:
     player.moveForward(rollDice(player), board.size)
     # TODO: Interact with hall sensor
-    showInLCD(player.id, LCDMessage(top=f"Moved to cell {player.position}"))
+    utils.showInLCD(player.id, LCDMessage(top=f"Moved to cell {player.position}"))
     print(f"Player {player.id} moved to cell {player.position} - {board.getCellName(player.position)}")
     time.sleep(4)
 
@@ -180,11 +178,11 @@ def rollDice(player) -> int:
     topic = PLAYERS_BUTTON_TOPIC.format(id=player.id)
     client.subscribe(topic)
     message = LCDMessage(top="Roll the dice".center(16), down="Press the button".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     waitEvent(waitDiceEvent)
     result = Random().randint(1, 6)
     message = LCDMessage(top="Dice rolled".center(16), down=str(result).center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     client.unsubscribe(topic)
 
     setGameState(GameState.PLAYING)
@@ -220,33 +218,33 @@ def playCell(player: Player, cell_type: CellType) -> None:
 
 def gainPoints(player: Player) -> None:
     messagePlayer = LCDMessage(top="Gain Points".center(16))
-    showInLCD(player.id, messagePlayer)
+    utils.showInLCD(player.id, messagePlayer)
     time.sleep(4)
     points = Random().randint(5, 10)
     player.gainPoints(points)
     messagePlayer = LCDMessage(top="You gained".center(16), down=f"{points:2d} points".center(16))
     messageOther = LCDMessage(top=f"Player {player.id} gained".center(16), down=f"{points:2d} points".center(16))
-    showInLCD(player.id, messagePlayer)
-    showInOtherLCD(player.id, messageOther)
+    utils.showInLCD(player.id, messagePlayer)
+    utils.showInOtherLCD(player.id, messageOther)
     time.sleep(4)
 
 
 def losePoints(player: Player) -> None:
     messagePlayer = LCDMessage(top="Lose Points".center(16))
-    showInLCD(player.id, messagePlayer)
+    utils.showInLCD(player.id, messagePlayer)
     time.sleep(4)
     points = Random().randint(1, 5)
     player.losePoints(points)
     messagePlayer = LCDMessage(top="You lost".center(16), down=f"{points:2d} points".center(16))
     messageOther = LCDMessage(top=f"Player {player.id} lost".center(16), down=f"{points:2d} points".center(16))
-    showInLCD(player.id, messagePlayer)
-    showInOtherLCD(player.id, messageOther)
+    utils.showInLCD(player.id, messagePlayer)
+    utils.showInOtherLCD(player.id, messageOther)
     time.sleep(4)
 
 
 def skipTurn(player: Player) -> None:
     message = LCDMessage(top="Skip turn".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
 
 
@@ -261,7 +259,7 @@ def randomEvent(player: Player) -> None:
     events, probs = zip(*eventProbs.items())
     random_event = Random().choices(events, probs)[0]
     message = LCDMessage(top="Random Event".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
     playCell(player, random_event)
     time.sleep(4)
@@ -269,12 +267,12 @@ def randomEvent(player: Player) -> None:
 
 def moveForward(player: Player) -> None:
     message = LCDMessage(top="Move Forward".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
     steps = Random().randint(1, 3)
     player.moveForward(steps, board.size)
     message = LCDMessage(top=f"Move {steps}".center(16), down="steps forward".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
     playCell(player, board.getCellType(player.position))
     time.sleep(4)
@@ -282,12 +280,12 @@ def moveForward(player: Player) -> None:
 
 def moveBackward(player: Player) -> None:
     message = LCDMessage(top="Move Backwards".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
     steps = Random().randint(1, 3)
     player.moveBackward(steps, board.size)
     message = LCDMessage(top=f"Move {steps}".center(16), down="steps backward".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
     playCell(player, board.getCellType(player.position))
     time.sleep(4)
@@ -295,33 +293,15 @@ def moveBackward(player: Player) -> None:
 
 def deathEvent(player: Player) -> None:
     message = LCDMessage(top="Death Event".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(4)
     message = LCDMessage(top="You died".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     time.sleep(2)
     message = LCDMessage(top="You lose".center(16), down="all your points".center(16))
-    showInLCD(player.id, message)
+    utils.showInLCD(player.id, message)
     player.losePoints(player.points)
     time.sleep(4)
-
-
-def showInLCD(player_id, message: LCDMessage) -> None:
-    topic = PLAYERS_LCD_TOPIC.format(id=player_id)
-    payload = message.toJson()
-    client.publish(topic, payload)
-    printDebug(f"(Player {player_id}) {message}")
-
-
-def showInOtherLCD(player_id, message: LCDMessage) -> None:
-    for other in players:
-        if other.id != player_id:
-            showInLCD(other.id, message)
-
-
-def showInAllLCD(message: LCDMessage) -> None:
-    for player in players:
-        showInLCD(player.id, message)
 
 
 def showStats() -> None:
@@ -329,24 +309,47 @@ def showStats() -> None:
         top=f"P{players[0].id}: {players[0].points} points",
         down=f"P{players[1].id}: {players[1].points} points",
     )
-    showInAllLCD(message)
+    utils.showInAllLCD(message)
     time.sleep(5)
 
 
 def miniGame() -> None:
     global current_minigame
-    randomGame: MinigameType = Random().choice(list(minigames.keys()))
-    current_minigame: Minigame = minigames[randomGame](players, client)
+    winning_points = 10
+    # randomGame: MinigameType = Random().choice(list(minigames.keys()))
+    randomGame = MinigameType.Number_Guesser
+    current_minigame = minigames[randomGame](players, client)
     
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
-    client.publish(MINIGAMES_TOPIC, randomGame.value)
-    current_minigame.startGame()
+    # client.publish(MINIGAMES_TOPIC, randomGame.value)
+    winners: list[Player] = current_minigame.playGame()
+    handleWinners(winners, winning_points)
+    time.sleep(4)
 
+
+def handleWinners(winners: list[Player], winning_points: int) -> None:
+    if len(winners) == 0:
+        utils.showInAllLCD(LCDMessage(top="No winners", down="0 points"))
+        utils.playInAllBuzzer(Melodies.LOSING_SOUND)
+    elif len(winners) == 1:
+        winner = winners[0]
+        winner.gainPoints(winning_points)
+        utils.showInLCD(winner.id, LCDMessage(top="You won".center(16), down=f"{winning_points} points".center(16)))
+        utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
+        utils.showInOtherLCD(winner.id, LCDMessage(top=f"Player {winner.id} won".center(16), down=f"{winning_points} points".center(16)))
+        utils.playInOtherBuzzer(winner.id, Melodies.LOSING_SOUND)
+    else:
+        utils.showInAllLCD(LCDMessage(top="Draw!", down=f"{winning_points} points"))
+        for winner in winners:
+            winner.gainPoints(winning_points)
+            utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
+    
 
 if __name__ == "__main__":
     try:
         client = createMqttClient(MQTT_BROKER, MQTT_PORT, CLIENT_ID)
+        utils = Utils(client, players, DEBUG)
         waitForPlayers()
         initGame()
     except KeyboardInterrupt:
