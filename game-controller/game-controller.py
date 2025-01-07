@@ -47,9 +47,9 @@ minigames = {
     MinigameType.Hot_Potato: Minigame,
     MinigameType.Blind_Timer: Minigame,
     MinigameType.Number_Guesser: NumberGuesser,
-    MinigameType.Tug_of_War: Minigame,
+    MinigameType.Tug_of_War: TugOfWar,
     MinigameType.Rock_Paper_Scissors: Minigame,
-    MinigameType.Last_Stick_Standing: Minigame,
+    MinigameType.Last_Stick_Standing: LastStickStanding,
     MinigameType.Quick_Reflexes: Minigame,
 }
 
@@ -318,7 +318,7 @@ def miniGame() -> None:
     global current_minigame
     winning_points = 10
     # randomGame: MinigameType = Random().choice(list(minigames.keys()))
-    randomGame = MinigameType.Number_Guesser
+    randomGame = MinigameType.Tug_of_War
     current_minigame = minigames[randomGame](players, client)
 
     setGameState(GameState.MINIGAME)
