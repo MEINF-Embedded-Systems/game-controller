@@ -21,18 +21,20 @@ class NumberGuesser(Minigame):
     def __init__(self, players: list[Player], client: mqtt.Client) -> None:
         super().__init__(players, client)
         self.choices = {player.id: {"finished": False, "choice": 1} for player in self.players}
-        self.number = None
         self.minGuess, self.maxGuess = 1, 5
+        self.number = Random().randint(self.minGuess, self.maxGuess)
         self.utils = Utils(client, players, debug=True)
         self.numberGuesserEvent = Event()
 
     def playGame(self) -> list[Player]:
-        self.number = Random().randint(self.minGuess, self.maxGuess)
-        self.utils.printDebug(f"Number to guess: {self.number}")
+        self.utils.printDebug(f"The chosen number is: {self.number}")
         self.introduceGame()
         self.client.subscribe(BUTTON_TOPIC.format(id="+"))
         self.numberGuesserEvent.wait()
         self.client.unsubscribe(BUTTON_TOPIC.format(id="+"))
+        time.sleep(2)
+        self.utils.showInAllLCD(LCDMessage(top="All players", down="have finished"))
+        time.sleep(3)
         positive_guesses = [
             self.choices[player_id]["choice"]
             for player_id in self.choices
@@ -47,7 +49,7 @@ class NumberGuesser(Minigame):
         if message.topic == BUTTON_TOPIC.format(id=player_id):
             payload = json.loads(message.payload.decode("utf-8"))
             press_type = payload["type"]
-            print(payload)
+            self.utils.printDebug(payload)
             if press_type == "short" and self.choices[player_id]["finished"] == False:
                 current_choice = self.choices[player_id]["choice"]
                 new_choice = current_choice + 1 if current_choice < self.maxGuess else self.minGuess
@@ -56,11 +58,16 @@ class NumberGuesser(Minigame):
                     player_id, LCDMessage(top="Current number".center(16), down=f"-> {new_choice} <-".center(16))
                 )
             elif press_type == "long":
+                choice = self.choices[player_id]["choice"]
                 self.choices[player_id]["finished"] = True
-                self.utils.showInLCD(player_id, LCDMessage(top="Number confirmed", down="Wait for others"))
+                top = f"Number {choice} chosen".center(16)
                 # Check if all players have finished
                 if all(choice["finished"] for choice in self.choices.values()):
+                    down = ""
                     self.numberGuesserEvent.set()
+                else:
+                    down = "Wait for others"
+                self.utils.showInLCD(player_id, LCDMessage(top=top, down=down))
 
     def introduceGame(self):
         self.utils.showInAllLCD(LCDMessage(top="Number Guesser".center(16)))

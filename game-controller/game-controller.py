@@ -55,6 +55,7 @@ minigames = {
 
 current_minigame: Minigame = None
 
+
 # Callbacks
 def on_message(client, userdata, message):
     # utils.printDebug(f"LCDMessage recevived: {message.payload.decode()}")
@@ -319,7 +320,7 @@ def miniGame() -> None:
     # randomGame: MinigameType = Random().choice(list(minigames.keys()))
     randomGame = MinigameType.Number_Guesser
     current_minigame = minigames[randomGame](players, client)
-    
+
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
     # client.publish(MINIGAMES_TOPIC, randomGame.value)
@@ -330,21 +331,25 @@ def miniGame() -> None:
 
 def handleWinners(winners: list[Player], winning_points: int) -> None:
     if len(winners) == 0:
-        utils.showInAllLCD(LCDMessage(top="No winners", down="0 points"))
+        utils.showInAllLCD(LCDMessage(top="No winners".center(16), down="0 points".center(16)))
         utils.playInAllBuzzer(Melodies.LOSING_SOUND)
     elif len(winners) == 1:
         winner = winners[0]
         winner.gainPoints(winning_points)
         utils.showInLCD(winner.id, LCDMessage(top="You won".center(16), down=f"{winning_points} points".center(16)))
         utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
-        utils.showInOtherLCD(winner.id, LCDMessage(top=f"Player {winner.id} won".center(16), down=f"{winning_points} points".center(16)))
         utils.playInOtherBuzzer(winner.id, Melodies.LOSING_SOUND)
+        utils.showInOtherLCD(
+            winner.id, LCDMessage(top=f"Player {winner.id} won".center(16), down=f"{winning_points} points".center(16))
+        )
+        time.sleep(2)
+        utils.showInOtherLCD(winner.id, LCDMessage(top="Better luck".center(16), down="next time".center(16)))
     else:
         utils.showInAllLCD(LCDMessage(top="Draw!", down=f"{winning_points} points"))
         for winner in winners:
-            winner.gainPoints(winning_points)
+            winner.gainPoints(winning_points // len(winners))
             utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
-    
+
 
 if __name__ == "__main__":
     try:
