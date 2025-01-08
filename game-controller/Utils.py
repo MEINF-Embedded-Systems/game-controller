@@ -44,3 +44,22 @@ class Utils:
     def playInAllBuzzer(self, message: BuzzerMessage) -> None:
         for player in self.players:
             self.playInBuzzer(player.id, message)
+
+    def beepPlayer(self, player_id, duration_ms=100, frequency=1000):
+        """Make a single player's buzzer beep"""
+        message = BuzzerMessage(tones=[frequency, 0], duration=[duration_ms, 0])
+        self.playInBuzzer(player_id, message)
+        self.printDebug(f"Player {player_id} is beeping at {frequency}Hz for {duration_ms}ms")
+
+    def beepOtherPlayers(self, player_id, duration_ms=100, frequency=1000):
+        """Make all other players' buzzers beep except the specified player"""
+        message = BuzzerMessage(tones=[frequency, 0], duration=[duration_ms, 0])
+        for other in self.players:
+            if other.id != player_id:
+                self.playInBuzzer(other.id, message)
+
+    def beepAllPlayers(self, duration_ms=100, frequency=1000):
+        """Make all players' buzzers beep"""
+        message = BuzzerMessage(tones=[frequency, 0], duration=[duration_ms, 0])
+        for player in self.players:
+            self.playInBuzzer(player.id, message)

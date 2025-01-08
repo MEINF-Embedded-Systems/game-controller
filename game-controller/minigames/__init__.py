@@ -6,4 +6,4 @@ from .NumberGuesser import NumberGuesser
 from .HotPotato import HotPotato
 
 # Define __all__ to control * imports
-__all__ = ["Minigame", "MinigameType", "NumberGuesser", "HotPotato", "TugOfWar","LastStickStanding",]
+__all__ = ["Minigame", "MinigameType", "NumberGuesser", "HotPotato"]
