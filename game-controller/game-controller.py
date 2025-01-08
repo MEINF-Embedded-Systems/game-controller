@@ -47,9 +47,9 @@ minigames = {
     MinigameType.Hot_Potato: HotPotato,
     MinigameType.Blind_Timer: Minigame,
     MinigameType.Number_Guesser: NumberGuesser,
-    MinigameType.Tug_of_War: Minigame,
+    MinigameType.Tug_of_War: TugOfWar,
     MinigameType.Rock_Paper_Scissors: Minigame,
-    MinigameType.Last_Stick_Standing: Minigame,
+    MinigameType.Last_Stick_Standing: LastStickStanding,
     MinigameType.Quick_Reflexes: Minigame,
 }
 
@@ -120,11 +120,7 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
 
 def manageDiceRoll(message: mqtt.MQTTMessage) -> None:
     if message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id):
-        player_id = int(message.topic.split("/")[2])
-        if player_id == players[turn].id:
-            waitDiceEvent.set()
-        else:
-            print(f"Player {player_id} is not allowed to roll the dice")
+        waitDiceEvent.set()
 
 
 def closeMqttConnection(client: mqtt.Client) -> None:
@@ -190,16 +186,15 @@ def rollDice(player) -> int:
     setGameState(GameState.ROLLING_DICE)
 
     topic = PLAYERS_BUTTON_TOPIC.format(id=player.id)
-    client.subscribe(topic)
-    message = LCDMessage(
-        top="Roll the dice".center(16), down="Press the button".center(16)
-    )
+
+    message = LCDMessage(top="Roll the dice".center(16), down="Press the button".center(16))
     utils.showInLCD(player.id, message)
+    client.subscribe(topic)
     waitEvent(waitDiceEvent)
+    client.unsubscribe(topic)
     result = Random().randint(1, 6)
     message = LCDMessage(top="Dice rolled".center(16), down=str(result).center(16))
     utils.showInLCD(player.id, message)
-    client.unsubscribe(topic)
 
     setGameState(GameState.PLAYING)
     time.sleep(4)
@@ -351,8 +346,8 @@ def miniGame() -> None:
 
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
-    # client.publish(MINIGAMES_TOPIC, randomGame.value)
     winners: list[Player] = current_minigame.playGame()
+    print("HELLO")
     handleWinners(winners, winning_points)
     time.sleep(4)
 
