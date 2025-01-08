@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 import time
 import paho.mqtt.client as mqtt
 from random import Random
@@ -13,15 +14,16 @@ BUTTON_TOPIC = "game/players/{id}/components/button"
 
 class TugOfWar(Minigame):
     """
-    Tug of War:
-    - Objective: Pull the virtual rope onto your screen.
-    - Rules: Players repeatedly press the button to move a virtual rope closer to their side on the control base LCD screen. The first player to pull the rope past a threshold wins.
-    It's reminiscent of the classic "Tug of War" game ("Tira y Afloja" in Spanish).
+    Tug of War: Pull the virtual rope onto your screen.
+    - Rules: 
+        - Players repeatedly press the button to move a virtual rope closer to their side on the control base LCD screen. 
+        - The first player to pull the rope past a threshold wins.
+        - It's reminiscent of the classic "Tug of War" game ("Tira y Afloja" in Spanish).
     """
 
     def __init__(self, players: list[Player], client: mqtt.Client) -> None:
         super().__init__(players, client)
-        self.hits = {player.id: 0 for player in self.players}
+        self.hits = 0
         self.utils = Utils(client, players, debug=True)
         self.tugOfWarEvent = Event()
 
@@ -32,13 +34,11 @@ class TugOfWar(Minigame):
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Short: Pull the", down="rope"))
         time.sleep(3)
-        sequence = [3, 2, 1, "GO!"]
-        for elem in sequence:
-            self.utils.showInAllLCD(LCDMessage(top="Ready?".center(16), down=str(elem).center(16)))    
+        for elem in [3, 2, 1, "GO!"]:
+            self.utils.showInAllLCD(LCDMessage(top="Ready?".center(16), down=str(elem).center(16)))
             time.sleep(1)
         time.sleep(1)
-        self.utils.showInAllLCD(LCDMessage(top="Tug of War".center(16), down="-" * 16))
-
+        self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down="-" * 16))
 
     def playGame(self) -> list[Player]:
         self.introduceGame()
@@ -46,43 +46,32 @@ class TugOfWar(Minigame):
         self.tugOfWarEvent.wait()
         self.client.unsubscribe(BUTTON_TOPIC.format(id="+"))
         time.sleep(2)
-        self.utils.showInAllLCD(LCDMessage(top="Finished!"))
+        self.utils.showInAllLCD(LCDMessage(top="Tug of War".center(16), down="finished!".center(16)))
         time.sleep(3)
-        winner = max(self.hits.keys(), key=lambda id: self.hits[id])
-        return [player for player in self.players if player.id == winner]
+        winner: Player = self.players[0] if self.hits < 0 else self.players[1]
+        return [winner]
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage) -> None:
         player_id = int(message.topic.split("/")[2])
         if message.topic == BUTTON_TOPIC.format(id=player_id):
-            try:
-                print(message.payload)
-                payload = json.loads(message.payload.decode("utf-8"))
-                self.utils.printDebug(payload)
+            player_1, player_2 = self.players
+            if player_id == player_1.id:
+                self.hits -= 1
+            elif player_id == player_2.id:
+                self.hits += 1
+            rope = self.getRope()
+            self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down=rope))
+            
+            if abs(self.hits) >= 16:
+                self.tugOfWarEvent.set()
 
-                self.hits[player_id] += 1
-                # Get player ids sorted
-                sorted_players = sorted(self.hits.keys())
-
-                rope = None
-
-                player_1_id = sorted_players[0]
-                player_2_id = sorted_players[1]
-
-                player_1_hits = self.hits[player_1_id]
-                player_2_hits = self.hits[player_2_id]
-
-                difference = abs(player_1_hits - player_2_hits)
-
-                if player_1_hits > player_2_hits:
-                    rope = "-" * (16 - difference) + " " * difference
-                elif player_1_hits < player_2_hits:
-                    rope = " " * difference + "-" * (16 - difference)
-                else:
-                    rope = "-" * 16
-
-                self.utils.showInAllLCD(LCDMessage(top="Tug of War".center(16), down=rope))
-
-                if difference >= 16:
-                    self.tugOfWarEvent.set()
-            except Exception as e:
-                pass
+    def getRope(self):
+        rope = None
+        if self.hits < 0:
+            hits = abs(self.hits)
+            rope = "-" * (16 - hits) + " " * (hits)
+        elif self.hits > 0:
+            rope = " " * (self.hits) + "-" * (16 - self.hits)
+        else:
+            rope = "-" * 16
+        return rope
