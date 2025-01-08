@@ -45,12 +45,12 @@ board = Board()
 
 minigames = {
     MinigameType.Hot_Potato: HotPotato,
-    MinigameType.Blind_Timer: Minigame,
+    # MinigameType.Blind_Timer: Minigame,
     MinigameType.Number_Guesser: NumberGuesser,
     MinigameType.Tug_of_War: TugOfWar,
-    MinigameType.Rock_Paper_Scissors: Minigame,
-    MinigameType.Last_Stick_Standing: LastStickStanding,
-    MinigameType.Quick_Reflexes: Minigame,
+    # MinigameType.Rock_Paper_Scissors: Minigame,
+    # MinigameType.Last_Stick_Standing: LastStickStanding,
+    # MinigameType.Quick_Reflexes: Minigame,
 }
 
 current_minigame: Minigame = None
@@ -340,14 +340,13 @@ def showStats() -> None:
 def miniGame() -> None:
     global current_minigame
     winning_points = 10
-    # randomGame: MinigameType = Random().choice(list(minigames.keys()))
-    randomGame = MinigameType.Hot_Potato
+    randomGame: MinigameType = Random().choice(list(minigames.keys()))
+    # randomGame = MinigameType.Hot_Potato
     current_minigame = minigames[randomGame](players, client)
 
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
     winners: list[Player] = current_minigame.playGame()
-    print("HELLO")
     handleWinners(winners, winning_points)
     time.sleep(4)
 

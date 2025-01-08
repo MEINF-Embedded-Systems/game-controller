@@ -52,10 +52,9 @@ class HotPotato(Minigame):
         winners = [player for player in self.players if player != loser]
 
         self.utils.showInLCD(loser.id, LCDMessage(top="You lost!", down="BOOM!"))
-        self.utils.playInBuzzer(
-            loser.id, BuzzerMessage(tones=[100, 0], duration=[2000, 0])
-        )
+        self.utils.playInBuzzer(loser.id, BuzzerMessage(tones=[100, 0], duration=[2000, 0]))
         self.utils.showInOtherLCD(loser.id, LCDMessage(top=f"Player {loser.id} lost!"))
+        time.sleep(3)
 
         return winners
 
@@ -67,15 +66,11 @@ class HotPotato(Minigame):
     def introduceGame(self):
         self.utils.showInAllLCD(LCDMessage(top="Hot Potato!".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(
-            LCDMessage(top="Press button to", down="pass the potato!")
-        )
+        self.utils.showInAllLCD(LCDMessage(top="Press button to", down="pass the potato!"))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Pass it quickly!", down="It's hot!"))
         time.sleep(3)
-        self.utils.showInAllLCD(
-            LCDMessage(top="Avoid holding it", down="when it blows!")
-        )
+        self.utils.showInAllLCD(LCDMessage(top="Avoid holding it", down="when it blows!"))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="The time you", down="hold it matters!"))
         time.sleep(3)
@@ -93,17 +88,11 @@ class HotPotato(Minigame):
     def handleMQTTMessage(self, message: mqtt.MQTTMessage):
         if not self.hot_potato_event.is_set():  # only handle if the game is running
             player_id = int(message.topic.split("/")[2])
-            if (
-                message.topic == BUTTON_TOPIC.format(id=player_id)
-                and self.current_player.id == player_id
-            ):
-                payload = json.loads(message.payload.decode("utf-8"))
-                if payload["type"] == "short":
-                    self.passPotato()
-
-        if payload["type"] == "short":
-            self.passPotato()
-            self.updateLCDs()  # updates the LCDs on every button press showing who has the potato.
+            if message.topic == BUTTON_TOPIC.format(id=player_id) and self.current_player.id == player_id:
+                # payload = json.loads(message.payload.decode("utf-8"))
+                # if payload["type"] == "short":
+                self.passPotato()
+                self.updateLCDs()  # updates the LCDs on every button press showing who has the potato.
 
     def passPotato(self):
         current_player_index = self.players.index(self.current_player)
@@ -114,27 +103,22 @@ class HotPotato(Minigame):
         self.utils.beepPlayer(self.current_player.id, duration_ms=100, frequency=500)
 
     def explodePotato(self):
-        self.utils.printDebug("BOOM! The potato exploded!")
         self.hot_potato_event.set()  # Signal the end of the game
+        self.utils.printDebug("BOOM! The potato exploded!")
         if self.beep_timer:
             self.beep_timer.cancel()
         # Final explosion sound
         self.utils.beepAllPlayers(duration_ms=2000, frequency=100)
+        time.sleep(3)
 
     def scheduleBeep(self):
-        remaining_time = max(
-            0, self.timer_duration - (time.time() - self.start_time)
-        )  # Prevent negative time
+        remaining_time = max(0, self.timer_duration - (time.time() - self.start_time))  # Prevent negative time
         beep_interval = remaining_time / 10 + 0.1  # Faster beeps, adjusted formula
 
         if remaining_time > 0:
             if time.time() - self.last_beep_time >= beep_interval:
-                self.utils.playInAllBuzzer(
-                    BuzzerMessage(tones=[1000, 0], duration=[100, 0])
-                )
-                self.last_beep_time = (
-                    time.time()
-                )  # Update last beep time inside the 'if'
+                self.utils.playInAllBuzzer(BuzzerMessage(tones=[1000, 0], duration=[100, 0]))
+                self.last_beep_time = time.time()  # Update last beep time inside the 'if'
 
             self.beep_timer = Timer(0.1, self.scheduleBeep)
             self.beep_timer.start()
