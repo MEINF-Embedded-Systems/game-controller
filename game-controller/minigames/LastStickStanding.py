@@ -91,3 +91,25 @@ class LastStickStanding(Minigame):
                 self.current_player_index = (self.current_player_index + 1) % len(self.players)
                 self.sticks_to_take = 1
                 self.showTurnInfo()
+
+    def introduceGame(self) -> None:
+        self.utils.showInAllLCD(LCDMessage(
+            top="Last Stick Standing",
+            down="Remove sticks!"
+        ))
+        time.sleep(2)
+        self.utils.showInAllLCD(LCDMessage(
+            top="Short press:",
+            down="Choose 1-2 sticks"
+        ))
+        time.sleep(2)
+        self.utils.showInAllLCD(LCDMessage(
+            top="Long press:",
+            down="Remove sticks"
+        ))
+        time.sleep(2)
+        self.utils.showInAllLCD(LCDMessage(
+            top="Last stick loses!",
+            down="Good luck!"
+        ))
+        time.sleep(2)
