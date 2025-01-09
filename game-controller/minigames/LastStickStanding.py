@@ -17,7 +17,7 @@ class LastStickStanding(Minigame):
 
     def __init__(self, players: list[Player], client: mqtt.Client) -> None:
         super().__init__(players, client)
-        self.sticks = 9
+        self.sticks = Random().randint(5, 8)
         self.utils = Utils(client, players, debug=True)
         self.lastStickStandingEvent = Event()
         self.current_player_index = 0
@@ -47,16 +47,26 @@ class LastStickStanding(Minigame):
 
     def showTurnInfo(self) -> None:
         current_player = self.players[self.current_player_index]
+        sticks_visual = "|" * self.sticks
         self.utils.printDebug(f"Turn: Player {current_player.id} - Sticks remaining: {self.sticks}")
+        
         # Show turn info to current player
-        self.utils.showInLCD(current_player.id, LCDMessage(top="Your turn!", down=f"Take: {self.sticks_to_take} sticks"))
+        self.utils.showInLCD(
+            current_player.id, 
+            LCDMessage(
+                top=f"Take: {self.sticks_to_take} sticks",
+                down=sticks_visual.strip()
+            )
+        )
+        
         # Show wait info to other players
-        self.utils.showInOtherLCD(current_player.id, LCDMessage(top=f"Player {current_player.id}'s turn", down=f"Sticks left: {self.sticks}"))
-
-    def showRemainingSticks(self) -> None:
-        sticks_visual = "| " * self.sticks
-        self.utils.showInAllLCD(
-            LCDMessage(top=f"Sticks taken: {self.sticks_to_take}", down=sticks_visual.strip()))
+        self.utils.showInOtherLCD(
+            current_player.id, 
+            LCDMessage(
+                top=f"Wait for P {current_player.id}",
+                down=sticks_visual.strip()
+            )
+        )
 
     def toggleSticksToTake(self) -> None:
         if self.sticks > 2:  # Changed from >= to >
@@ -71,20 +81,11 @@ class LastStickStanding(Minigame):
         if player_id == self.players[self.current_player_index].id:
             self.utils.printDebug(f"Player {player_id} removes {self.sticks_to_take} sticks")
             self.sticks -= self.sticks_to_take
-            self.showRemainingSticks()
             time.sleep(2)
             
-            if self.sticks <= 0:  # Changed from <= 1
+            if self.sticks <= 0:
                 self.last_player = player_id
                 self.utils.printDebug(f"Game Over - Player {player_id} loses!")
-                self.utils.showInLCD(
-                    player_id,
-                    LCDMessage(top="You lose!", down="Better luck next time!")
-                )
-                self.utils.showInOtherLCD(
-                    player_id,
-                    LCDMessage(top="You win!", down="Congratulations!")
-                )
                 time.sleep(2)
                 self.lastStickStandingEvent.set()
             else:
@@ -101,3 +102,5 @@ class LastStickStanding(Minigame):
         time.sleep(2)
         self.utils.showInAllLCD(LCDMessage(top="Last stick loses!", down="Good luck!"))
         time.sleep(2)
+        self.startCountdown()
+        time.sleep(1)

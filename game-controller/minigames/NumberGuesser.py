@@ -34,7 +34,7 @@ class NumberGuesser(Minigame):
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Short: Change", down="Long: Confirm"))
         time.sleep(3)
-        self.countdown()
+        self.startCountdown()
         time.sleep(1)
         self.utils.showInAllLCD(LCDMessage(top="Current number".center(16), down="-> 1 <-".center(16)))
 

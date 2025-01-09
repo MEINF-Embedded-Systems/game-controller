@@ -27,7 +27,7 @@ class Minigame(ABC):
     def introduceGame(self) -> None:
         pass
     
-    def countdown(self):
+    def startCountdown(self):
         for elem in [3, 2, 1, "GO!"]:
             self.utils.showInAllLCD(LCDMessage(top="Ready?".center(16), down=str(elem).center(16)))
             time.sleep(1)
