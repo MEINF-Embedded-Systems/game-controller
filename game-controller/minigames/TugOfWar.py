@@ -54,16 +54,20 @@ class TugOfWar(Minigame):
     def handleMQTTMessage(self, message: mqtt.MQTTMessage) -> None:
         player_id = int(message.topic.split("/")[2])
         if message.topic == BUTTON_TOPIC.format(id=player_id):
-            player_1, player_2 = self.players
-            if player_id == player_1.id:
-                self.hits -= 1
-            elif player_id == player_2.id:
-                self.hits += 1
-            rope = self.getRope()
-            self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down=rope))
-            
-            if abs(self.hits) >= 16:
-                self.tugOfWarEvent.set()
+            try:
+                payload = json.loads(message.payload.decode('utf-8'))
+                player_1, player_2 = self.players
+                if player_id == player_1.id:
+                    self.hits -= 1
+                elif player_id == player_2.id:
+                    self.hits += 1
+                rope = self.getRope()
+                self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down=rope))
+                
+                if abs(self.hits) >= 16:
+                    self.tugOfWarEvent.set()
+            except JSONDecodeError:
+                pass
 
     def getRope(self):
         rope = None

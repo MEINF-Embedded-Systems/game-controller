@@ -7,3 +7,4 @@ class GameState(Enum):
     ROLLING_DICE = 2
     GAME_OVER = 3
     MINIGAME = 4
+    MINIGAME_ELECTION = 5

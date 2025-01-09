@@ -1,3 +1,4 @@
+import json
 from random import Random
 import time
 from CellType import CellType
@@ -37,6 +38,7 @@ MINIGAMES_TOPIC = "game/minigame"
 # Events
 waitPlayersEvent = Event()
 waitDiceEvent = Event()
+waitMinigameElectionEvent = Event()
 
 # Current state of the game
 current_state = GameState.WAITING_FOR_PLAYERS
@@ -54,6 +56,9 @@ minigames = {
 }
 
 current_minigame: Minigame = None
+orderedMinigames = list(sorted(minigames, key=lambda x: x.name))
+randomGameManually: MinigameType = None
+minigameIndex = 0
 
 
 # Callbacks
@@ -66,6 +71,8 @@ def on_message(client, userdata, message):
             manageDiceRoll(message)
         case GameState.MINIGAME:
             current_minigame.handleMQTTMessage(message)
+        case GameState.MINIGAME_ELECTION:
+            manageGameElectionManually(message)
         case GameState.GAME_OVER:
             pass
         case _:
@@ -121,6 +128,20 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
 def manageDiceRoll(message: mqtt.MQTTMessage) -> None:
     if message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id):
         waitDiceEvent.set()
+        
+def manageGameElectionManually(message: mqtt.MQTTMessage) -> None:
+    global randomGameManually
+    global minigameIndex
+    global orderedMinigames
+    if message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id):
+        payload = json.loads(message.payload.decode())
+        if payload["type"] == "short":
+            minigameIndex = (minigameIndex + 1) % len(orderedMinigames)
+            nextMinigame: MinigameType = orderedMinigames[minigameIndex]
+            utils.showInAllLCD(LCDMessage(top=nextMinigame.name.center(16)))
+        elif payload["type"] == "long":
+            randomGameManually = orderedMinigames[minigameIndex]
+            waitMinigameElectionEvent.set()
 
 
 def closeMqttConnection(client: mqtt.Client) -> None:
@@ -340,15 +361,27 @@ def showStats() -> None:
 def miniGame() -> None:
     global current_minigame
     winning_points = 10
-    randomGame: MinigameType = Random().choice(list(minigames.keys()))
-    # randomGame = MinigameType.Hot_Potato
+    if DEBUG:
+        randomGame = waitForMinigameElection()
+    else:
+        randomGame = Random().choice(list(minigames.keys()))
     current_minigame = minigames[randomGame](players, client)
-
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
     winners: list[Player] = current_minigame.playGame()
     handleWinners(winners, winning_points)
     time.sleep(4)
+    
+def waitForMinigameElection() -> MinigameType:
+    global randomGameManually
+    global orderedMinigames
+    client.subscribe(PLAYERS_BUTTON_TOPIC.format(id=players[turn].id))
+    utils.showInAllLCD(LCDMessage(top=orderedMinigames[0].name.center(16)))
+    setGameState(GameState.MINIGAME_ELECTION)
+    waitEvent(waitMinigameElectionEvent)
+    client.unsubscribe(PLAYERS_BUTTON_TOPIC.format(id=players[turn].id))
+    return randomGameManually
+
 
 
 def handleWinners(winners: list[Player], winning_points: int) -> None:
