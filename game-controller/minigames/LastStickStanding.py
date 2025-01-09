@@ -79,11 +79,11 @@ class LastStickStanding(Minigame):
                 self.utils.printDebug(f"Game Over - Player {player_id} loses!")
                 self.utils.showInLCD(
                     player_id,
-                    LCDMessage(top="Game Over!", down="You lose!")
+                    LCDMessage(top="You lose!", down="Better luck next time!")
                 )
                 self.utils.showInOtherLCD(
                     player_id,
-                    LCDMessage(top="Game Over!", down="You win!")
+                    LCDMessage(top="You win!", down="Congratulations!")
                 )
                 time.sleep(2)
                 self.lastStickStandingEvent.set()
@@ -93,23 +93,11 @@ class LastStickStanding(Minigame):
                 self.showTurnInfo()
 
     def introduceGame(self) -> None:
-        self.utils.showInAllLCD(LCDMessage(
-            top="Last Stick Standing",
-            down="Remove sticks!"
-        ))
+        self.utils.showInAllLCD(LCDMessage(top="Last Stick Standing", down="Remove sticks!"))
         time.sleep(2)
-        self.utils.showInAllLCD(LCDMessage(
-            top="Short press:",
-            down="Choose 1-2 sticks"
-        ))
+        self.utils.showInAllLCD(LCDMessage(top="Short press:", down="Choose 1-2 sticks"))
         time.sleep(2)
-        self.utils.showInAllLCD(LCDMessage(
-            top="Long press:",
-            down="Remove sticks"
-        ))
+        self.utils.showInAllLCD(LCDMessage(top="Long press:", down="Remove sticks"))
         time.sleep(2)
-        self.utils.showInAllLCD(LCDMessage(
-            top="Last stick loses!",
-            down="Good luck!"
-        ))
+        self.utils.showInAllLCD(LCDMessage(top="Last stick loses!", down="Good luck!"))
         time.sleep(2)
