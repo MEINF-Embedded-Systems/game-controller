@@ -24,7 +24,6 @@ class TugOfWar(Minigame):
     def __init__(self, players: list[Player], client: mqtt.Client) -> None:
         super().__init__(players, client)
         self.hits = 0
-        self.utils = Utils(client, players, debug=True)
         self.tugOfWarEvent = Event()
 
     def introduceGame(self):
@@ -32,11 +31,11 @@ class TugOfWar(Minigame):
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Pull the rope".center(16), down="to your side".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Short: Pull the", down="rope"))
+        self.utils.showInAllLCD(LCDMessage(top="Long: Pull the", down="rope"))
         time.sleep(3)
         self.startCountdown()
         time.sleep(1)
-        self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down="-" * 16))
+        self.utils.showInAllLCD(LCDMessage(top="P1-Tug of War-P2".center(16), down="-" * 16))
 
     def playGame(self) -> list[Player]:
         self.introduceGame()
@@ -54,16 +53,18 @@ class TugOfWar(Minigame):
         if message.topic == BUTTON_TOPIC.format(id=player_id):
             try:
                 payload = json.loads(message.payload.decode('utf-8'))
-                player_1, player_2 = self.players
-                if player_id == player_1.id:
-                    self.hits -= 1
-                elif player_id == player_2.id:
-                    self.hits += 1
-                rope = self.getRope()
-                self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down=rope))
-                
-                if abs(self.hits) >= 16:
-                    self.tugOfWarEvent.set()
+                if payload["type"] == "long" and not self.tugOfWarEvent.is_set():
+                    self.utils.beepPlayer(player_id)
+                    player_1, player_2 = self.players
+                    if player_id == player_1.id:
+                        self.hits -= 3
+                    elif player_id == player_2.id:
+                        self.hits += 3
+                    rope = self.getRope()
+                    self.utils.showInAllLCD(LCDMessage(top="P1-Tug of War-P2".center(16), down=rope))
+                    
+                    if abs(self.hits) >= 16:
+                        self.tugOfWarEvent.set()
             except JSONDecodeError:
                 pass
 

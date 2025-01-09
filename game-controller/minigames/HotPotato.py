@@ -21,7 +21,6 @@ class HotPotato(Minigame):
         super().__init__(players, client)
         self.current_player = random.choice(players)
         self.timer_duration = random.randint(10, 30)
-        self.utils = Utils(client, players, debug=True)
         self.hot_potato_event = Event()
         self.explosion_timer = None
         self.beep_timer = None

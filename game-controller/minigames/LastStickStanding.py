@@ -18,7 +18,6 @@ class LastStickStanding(Minigame):
     def __init__(self, players: list[Player], client: mqtt.Client) -> None:
         super().__init__(players, client)
         self.sticks = 12
-        self.utils = Utils(client, players, debug=True)
         self.lastStickStandingEvent = Event()
         self.current_player_index = 0
         self.sticks_to_take = 1

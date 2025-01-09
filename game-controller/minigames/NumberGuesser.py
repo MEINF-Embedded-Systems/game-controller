@@ -24,7 +24,6 @@ class NumberGuesser(Minigame):
         self.choices = {player.id: {"finished": False, "choice": 1} for player in self.players}
         self.minGuess, self.maxGuess = 1, 5
         self.number = Random().randint(self.minGuess, self.maxGuess)
-        self.utils = Utils(client, players, debug=True)
         self.numberGuesserEvent = Event()
 
     def introduceGame(self):
