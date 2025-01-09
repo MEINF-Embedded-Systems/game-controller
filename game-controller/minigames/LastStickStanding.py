@@ -74,7 +74,7 @@ class LastStickStanding(Minigame):
             self.showRemainingSticks()
             time.sleep(2)
             
-            if self.sticks == 0:  # Changed from <= 1
+            if self.sticks <= 0:  # Changed from <= 1
                 self.last_player = player_id
                 self.utils.printDebug(f"Game Over - Player {player_id} loses!")
                 self.utils.showInLCD(
