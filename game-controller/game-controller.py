@@ -384,34 +384,63 @@ def waitForMinigameElection() -> MinigameType:
 
 
 def handleWinners(winners: list[Player], winning_points: int) -> None:
+    # NO WINNERS
     if len(winners) == 0:
         utils.showInAllLCD(
             LCDMessage(top="No winners".center(16), down="0 points".center(16))
         )
         utils.playInAllBuzzer(Melodies.LOSING_SOUND)
+
+    # 1 WINNER
     elif len(winners) == 1:
+        # Update points
         winner = winners[0]
         winner.gainPoints(winning_points)
+
+        # Winner feedback
+        utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
+        utils.showInLCD(
+            winner.id,
+            LCDMessage(top="You won!".center(16))
+        )
+        time.sleep(2)
+
         utils.showInLCD(
             winner.id,
             LCDMessage(
-                top="You won".center(16), down=f"{winning_points} points".center(16)
-            ),
+                top="Great job!".center(16), 
+                down="Congratulations!".center(16))
         )
-        utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
+        time.sleep(2)
+        utils.showInLCD(
+            winner.id,
+            LCDMessage(top=f"You won {winning_points} points".center(16))
+        )
+        
+        # Loser feedback
         utils.playInOtherBuzzer(winner.id, Melodies.LOSING_SOUND)
         utils.showInOtherLCD(
             winner.id,
-            LCDMessage(
-                top=f"Player {winner.id} won".center(16),
-                down=f"{winning_points} points".center(16),
-            ),
+            LCDMessage(top="You lost".center(16))
         )
         time.sleep(2)
+
         utils.showInOtherLCD(
             winner.id,
-            LCDMessage(top="Better luck".center(16), down="next time".center(16)),
+            LCDMessage(
+                top="Better luck".center(16), 
+                down="next time".center(16)),
         )
+        time.sleep(2)
+
+        utils.showInOtherLCD(
+            winner.id,
+            LCDMessage(
+                top=f"Player {winner.id} won".center(16), 
+                down=f"{winning_points} points".center(16))
+        )
+
+    # MULTIPLE WINNERS -> DRAW
     else:
         utils.showInAllLCD(LCDMessage(top="Draw!", down=f"{winning_points} points"))
         for winner in winners:
