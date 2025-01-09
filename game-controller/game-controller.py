@@ -195,7 +195,7 @@ def playTurn(player: Player) -> None:
 def movePlayer(player: Player) -> None:
     player.moveForward(rollDice(player), board.size)
     # TODO: Interact with hall sensor
-    utils.showInLCD(player.id, LCDMessage(top=f"Moved to cell {player.position}"))
+    utils.showInLCD(player.id, LCDMessage(top="Moved to cell".center(16), down=f"{player.position}".center(16)))
     print(
         f"Player {player.id} moved to cell {player.position} - {board.getCellName(player.position)}"
     )
