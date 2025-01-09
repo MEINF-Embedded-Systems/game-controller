@@ -111,7 +111,7 @@ class HotPotato(Minigame):
         if remaining_time > 0:
             if time.time() - self.last_beep_time >= beep_interval:
                 self.utils.playInAllBuzzer(BuzzerMessage(tones=[1000, 0], duration=[100, 0]))
-                self.last_beep_time = time.time()  # Update last beep time inside the 'if'
+                self.last_beep_time = time.time()  
 
             # Continue scheduling the next beep
             self.beep_timer = Timer(0.1, self.scheduleBeep)
