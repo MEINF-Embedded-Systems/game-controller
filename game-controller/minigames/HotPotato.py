@@ -35,25 +35,23 @@ class HotPotato(Minigame):
         self.start_time = time.time()
         self.client.subscribe(BUTTON_TOPIC.format(id="+"))
 
-        # Initial LCD update to show who has the potato
-        self.updateLCDs()
+        # Display the current player holding the potato
+        self.displayPotatoHolder()
 
+        # Start the timer for the explosion
         self.explosion_timer = Timer(self.timer_duration, self.explodePotato)
         self.explosion_timer.start()
 
-        self.scheduleBeep()  # Start beeping immediately
+        # Start the beeping sequence
+        self.scheduleBeep()
 
+        # Wait for the game end
         self.hot_potato_event.wait()
 
         self.client.unsubscribe(BUTTON_TOPIC.format(id="+"))
 
         loser = self.current_player
         winners = [player for player in self.players if player != loser]
-
-        self.utils.showInLCD(loser.id, LCDMessage(top="You lost!", down="BOOM!"))
-        self.utils.playInBuzzer(loser.id, BuzzerMessage(tones=[100, 0], duration=[2000, 0]))
-        self.utils.showInOtherLCD(loser.id, LCDMessage(top=f"Player {loser.id} lost!"))
-        time.sleep(3)
 
         return winners
 
@@ -71,23 +69,16 @@ class HotPotato(Minigame):
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Avoid holding it", down="when it blows!"))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="The time you", down="hold it matters!"))
-        time.sleep(3)
-
-    def startCountdown(self):
-        """Helper function to display the countdown sequence"""
-        self.countdown()
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage):
-        if not self.hot_potato_event.is_set():  # only handle if the game is running
+        if not self.hot_potato_event.is_set():  # Ignore button presses after the game ends
             player_id = int(message.topic.split("/")[2])
             if message.topic == BUTTON_TOPIC.format(id=player_id) and self.current_player.id == player_id:
-                # payload = json.loads(message.payload.decode("utf-8"))
-                # if payload["type"] == "short":
                 self.passPotato()
-                self.updateLCDs()  # updates the LCDs on every button press showing who has the potato.
+                self.displayPotatoHolder()  
 
     def passPotato(self):
+        # Update the current player
         current_player_index = self.players.index(self.current_player)
         next_player_index = (current_player_index + 1) % len(self.players)
         self.current_player = self.players[next_player_index]
@@ -96,12 +87,17 @@ class HotPotato(Minigame):
         self.utils.beepPlayer(self.current_player.id, duration_ms=100, frequency=500)
 
     def explodePotato(self):
-        self.hot_potato_event.set()  # Signal the end of the game
+        # Set the event to stop the game
+        self.hot_potato_event.set() 
         self.utils.printDebug("BOOM! The potato exploded!")
+
+        # Cancel the explosion timer
         if self.beep_timer:
             self.beep_timer.cancel()
-        # Final explosion sound
+
+        # Explosion sound and message
         self.utils.beepAllPlayers(duration_ms=2000, frequency=100)
+        self.utils.showInAllLCD(LCDMessage(top="BOOM!".center(16), down="Potato exploded!"))
         time.sleep(3)
 
     def scheduleBeep(self):
@@ -116,13 +112,13 @@ class HotPotato(Minigame):
             self.beep_timer = Timer(0.1, self.scheduleBeep)
             self.beep_timer.start()
 
-    def updateLCDs(self):
-        """Updates LCDs to show who currently has the potato."""
+    def displayPotatoHolder(self):
+        """Update the LCDs to show who has the potato"""
         self.utils.showInLCD(
             self.current_player.id,
-            LCDMessage(top="You have the potato!", down="Press to pass!"),
+            LCDMessage(top="You have", down="the potato!"),
         )
         self.utils.showInOtherLCD(
             self.current_player.id,
-            LCDMessage(top=f"Player {self.current_player.id} has the potato!"),
+            LCDMessage(top=f"Player {self.current_player.id} has", down="the potato!"),
         )
