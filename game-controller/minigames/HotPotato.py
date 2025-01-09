@@ -82,8 +82,9 @@ class HotPotato(Minigame):
         next_player_index = (current_player_index + 1) % len(self.players)
         self.current_player = self.players[next_player_index]
         self.utils.printDebug(f"Potato passed to Player {self.current_player.id}")
-        # Pass sound
-        self.utils.beepPlayer(self.current_player.id, duration_ms=100, frequency=500)
+
+        # Sound effect to notify new potato holder
+        self.utils.beepPlayer(self.current_player.id, duration_ms=200, frequency=500)
 
     def explodePotato(self):
         # Set the event to stop the game
