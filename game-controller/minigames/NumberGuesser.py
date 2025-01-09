@@ -47,6 +47,11 @@ class NumberGuesser(Minigame):
         time.sleep(2)
         self.utils.showInAllLCD(LCDMessage(top="All players".center(16), down="have finished".center(16)))
         time.sleep(3)
+
+        # Show the number
+        self.utils.showInAllLCD(LCDMessage(top="The number was".center(16), down=f"{self.number}".center(16)))
+        time.sleep(3)
+        
         positive_guesses = list(map(lambda value: value["choice"], filter(lambda value: value["choice"] <= self.number, self.choices.values())))
         closest_guess = min(positive_guesses, key=lambda choice: self.number - choice, default=None)
         winners: list[Player] = list(filter(lambda player: self.choices[player.id]["choice"] == closest_guess, self.players))
