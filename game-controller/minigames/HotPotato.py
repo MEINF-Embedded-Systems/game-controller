@@ -101,16 +101,22 @@ class HotPotato(Minigame):
         time.sleep(3)
 
     def scheduleBeep(self):
-        remaining_time = max(0, self.timer_duration - (time.time() - self.start_time))  # Prevent negative time
-        beep_interval = remaining_time / 10 + 0.1  # Faster beeps, adjusted formula
+        time_elapsed = time.time() - self.start_time
+        remaining_time = max(0, self.timer_duration - time_elapsed) # Prevent negative values
+
+        initial_beep_rate = 1.5  # Initial beep interval in seconds
+        acceleration_factor = remaining_time / self.timer_duration 
+        beep_interval = initial_beep_rate * acceleration_factor + 0.1  # Decrease the interval as the time decreases
 
         if remaining_time > 0:
             if time.time() - self.last_beep_time >= beep_interval:
                 self.utils.playInAllBuzzer(BuzzerMessage(tones=[1000, 0], duration=[100, 0]))
                 self.last_beep_time = time.time()  # Update last beep time inside the 'if'
 
+            # Continue scheduling the next beep
             self.beep_timer = Timer(0.1, self.scheduleBeep)
             self.beep_timer.start()
+
 
     def displayPotatoHolder(self):
         """Update the LCDs to show who has the potato"""
