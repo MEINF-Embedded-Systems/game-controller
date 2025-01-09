@@ -62,11 +62,11 @@ class HotPotato(Minigame):
     def introduceGame(self):
         self.utils.showInAllLCD(LCDMessage(top="Hot Potato!".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Press button to", down="pass the potato!"))
+        self.utils.showInAllLCD(LCDMessage(top="Press button to".center(16), down="pass the potato!".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Pass it quickly!", down="It's hot!"))
+        self.utils.showInAllLCD(LCDMessage(top="Pass it quickly!".center(16), down="It's hot!".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Avoid holding it", down="when it blows!"))
+        self.utils.showInAllLCD(LCDMessage(top="Avoid holding it".center(16), down="when it blows!".center(16)))
         time.sleep(3)
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage):
@@ -96,7 +96,7 @@ class HotPotato(Minigame):
 
         # Explosion sound and message
         self.utils.beepAllPlayers(duration_ms=2000, frequency=100)
-        self.utils.showInAllLCD(LCDMessage(top="BOOM!".center(16), down="Potato exploded!"))
+        self.utils.showInAllLCD(LCDMessage(top="BOOM!".center(16), down="Potato exploded!".center(16)))
         time.sleep(3)
 
     def scheduleBeep(self):
@@ -121,9 +121,9 @@ class HotPotato(Minigame):
         """Update the LCDs to show who has the potato"""
         self.utils.showInLCD(
             self.current_player.id,
-            LCDMessage(top="You have", down="the potato!"),
+            LCDMessage(top="You have".center(16), down="the potato!".center(16)),
         )
         self.utils.showInOtherLCD(
             self.current_player.id,
-            LCDMessage(top=f"Player {self.current_player.id} has", down="the potato!"),
+            LCDMessage(top=f"Player {self.current_player.id} has".center(16), down="the potato!".center(16)),
         )

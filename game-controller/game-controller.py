@@ -410,7 +410,7 @@ def handleWinners(winners: list[Player], winning_points: int) -> None:
             winner.id,
             LCDMessage(top="You lost".center(16))
         )
-        time.sleep(2)
+        time.sleep(3)
 
         # Congratulations message
         utils.showInLCD(
@@ -423,12 +423,12 @@ def handleWinners(winners: list[Player], winning_points: int) -> None:
             winner.id,
             LCDMessage(top="Better luck".center(16), down="next time".center(16)),
         )
-        time.sleep(2)
+        time.sleep(3)
 
         # Points feedback
         utils.showInLCD(
             winner.id,
-            LCDMessage(top=f"You won {winning_points} points".center(16))
+            LCDMessage(top="You won".center(16), down=f"{winning_points} points".center(16))
         )
         utils.showInOtherLCD(
             winner.id,
@@ -436,7 +436,7 @@ def handleWinners(winners: list[Player], winning_points: int) -> None:
                 top=f"Player {winner.id} won".center(16), 
                 down=f"{winning_points} points".center(16))
         )
-        time.sleep(2)
+        time.sleep(3)
 
     # MULTIPLE WINNERS -> DRAW
     else:
