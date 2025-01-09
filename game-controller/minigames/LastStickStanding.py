@@ -17,7 +17,7 @@ class LastStickStanding(Minigame):
 
     def __init__(self, players: list[Player], client: mqtt.Client) -> None:
         super().__init__(players, client)
-        self.sticks = 9
+        self.sticks = Random().randint(5, 8)
         self.utils = Utils(client, players, debug=True)
         self.lastStickStandingEvent = Event()
         self.current_player_index = 0
@@ -63,16 +63,10 @@ class LastStickStanding(Minigame):
         self.utils.showInOtherLCD(
             current_player.id, 
             LCDMessage(
-                top="Wait for your turn",
+                top=f"Wait for P {current_player.id}",
                 down=sticks_visual.strip()
             )
         )
-
-    def showRemainingSticks(self) -> None:
-        sticks_visual = "| " * self.sticks
-        self.utils.showInAllLCD(
-            LCDMessage(top=f"Sticks taken: {self.sticks_to_take}", down=sticks_visual.strip()))
-        time.sleep(2)
 
     def toggleSticksToTake(self) -> None:
         if self.sticks > 2:  # Changed from >= to >
@@ -87,7 +81,6 @@ class LastStickStanding(Minigame):
         if player_id == self.players[self.current_player_index].id:
             self.utils.printDebug(f"Player {player_id} removes {self.sticks_to_take} sticks")
             self.sticks -= self.sticks_to_take
-            self.showRemainingSticks()
             time.sleep(2)
             
             if self.sticks <= 0:
