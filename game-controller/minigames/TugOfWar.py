@@ -34,9 +34,7 @@ class TugOfWar(Minigame):
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Short: Pull the", down="rope"))
         time.sleep(3)
-        for elem in [3, 2, 1, "GO!"]:
-            self.utils.showInAllLCD(LCDMessage(top="Ready?".center(16), down=str(elem).center(16)))
-            time.sleep(1)
+        self.countdown()
         time.sleep(1)
         self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down="-" * 16))
 

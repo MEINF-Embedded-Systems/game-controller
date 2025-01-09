@@ -11,7 +11,6 @@ import random
 # MQTT Topics
 BUTTON_TOPIC = "game/players/{id}/components/button"
 
-
 class HotPotato(Minigame):
     """
     Hot Potato: Players pass a virtual "potato" by pressing a button.
@@ -77,13 +76,7 @@ class HotPotato(Minigame):
 
     def startCountdown(self):
         """Helper function to display the countdown sequence"""
-        self.utils.showInAllLCD(LCDMessage(top="Ready?"))
-        time.sleep(3)
-        top = "Starting in"
-        for i in range(3, 0, -1):
-            self.utils.showInAllLCD(LCDMessage(top=top, down=str(i)))
-            time.sleep(1)
-        self.utils.showInAllLCD(LCDMessage(top="GO!"))
+        self.countdown()
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage):
         if not self.hot_potato_event.is_set():  # only handle if the game is running
