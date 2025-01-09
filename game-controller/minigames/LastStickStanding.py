@@ -72,6 +72,7 @@ class LastStickStanding(Minigame):
         sticks_visual = "| " * self.sticks
         self.utils.showInAllLCD(
             LCDMessage(top=f"Sticks taken: {self.sticks_to_take}", down=sticks_visual.strip()))
+        time.sleep(2)
 
     def toggleSticksToTake(self) -> None:
         if self.sticks > 2:  # Changed from >= to >
