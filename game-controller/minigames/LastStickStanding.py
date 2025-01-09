@@ -47,7 +47,7 @@ class LastStickStanding(Minigame):
 
     def showTurnInfo(self) -> None:
         current_player = self.players[self.current_player_index]
-        sticks_visual = "| " * self.sticks
+        sticks_visual = "|" * self.sticks
         self.utils.printDebug(f"Turn: Player {current_player.id} - Sticks remaining: {self.sticks}")
         
         # Show turn info to current player
