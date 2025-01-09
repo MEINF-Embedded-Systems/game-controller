@@ -3,7 +3,7 @@
 from .AbstractMinigame import Minigame
 from .MinigameType import MinigameType
 from .NumberGuesser import NumberGuesser
-# from .HotPotato import HotPotato
+from .HotPotato import HotPotato
 from .TugOfWar import TugOfWar
 from .LastStickStanding import LastStickStanding
 
