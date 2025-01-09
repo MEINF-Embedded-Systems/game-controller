@@ -156,8 +156,7 @@ def initGame() -> None:
     utils.showInAllLCD(
         LCDMessage(top="Welcome to".center(16), down="The Game".center(16))
     )
-    utils.playInAllBuzzer(Melodies.WINNING_SOUND)
-    utils.playInAllBuzzer(Melodies.LOSING_SOUND)
+    utils.playInAllBuzzer(Melodies.GAME_TUNE)
     time.sleep(5)
 
     while current_state != GameState.GAME_OVER:
