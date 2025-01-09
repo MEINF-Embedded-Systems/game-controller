@@ -35,7 +35,7 @@ class LastStickStanding(Minigame):
     
     def handleMQTTMessage(self, message: mqtt.MQTTMessage) -> None:
         player_id = int(message.topic.split("/")[2])
-        if message.topic == BUTTON_TOPIC.format(id=player_id):
+        if message.topic == BUTTON_TOPIC.format(id=player_id) and player_id == self.players[self.current_player_index].id:
             payload = json.loads(message.payload.decode("utf-8"))
             press_type = payload["type"]
             self.utils.printDebug(payload)
@@ -46,7 +46,7 @@ class LastStickStanding(Minigame):
 
     def showTurnInfo(self) -> None:
         current_player = self.players[self.current_player_index]
-        sticks_visual = "|" * self.sticks
+        sticks_visual = "|" * self.sticks + f"{self.sticks:>2}".rjust(16 - self.sticks)
         self.utils.printDebug(f"Turn: Player {current_player.id} - Sticks remaining: {self.sticks}")
         
         # Show turn info to current player
@@ -54,7 +54,7 @@ class LastStickStanding(Minigame):
             current_player.id, 
             LCDMessage(
                 top=f"Take: {self.sticks_to_take} sticks",
-                down=sticks_visual.strip()
+                down=sticks_visual
             )
         )
         
@@ -63,7 +63,7 @@ class LastStickStanding(Minigame):
             current_player.id, 
             LCDMessage(
                 top=f"Wait for P{current_player.id}",
-                down=sticks_visual.strip()
+                down=sticks_visual
             )
         )
 
@@ -73,33 +73,33 @@ class LastStickStanding(Minigame):
             self.utils.printDebug(f"Player {self.players[self.current_player_index].id} selected to take {self.sticks_to_take} sticks")
         else:
             self.sticks_to_take = 1
-            self.utils.printDebug(f"Only 1 stick can be taken")
+            self.utils.printDebug("Only 1 stick can be taken")
         self.showTurnInfo()
 
     def removeStick(self, player_id: int) -> None:
-        if player_id == self.players[self.current_player_index].id:
-            self.utils.printDebug(f"Player {player_id} removes {self.sticks_to_take} sticks")
-            self.sticks -= self.sticks_to_take
-            time.sleep(2)
-            
-            if self.sticks <= 0:
-                self.last_player = player_id
-                self.utils.printDebug(f"Game Over - Player {player_id} loses!")
-                time.sleep(2)
-                self.lastStickStandingEvent.set()
-            else:
-                self.current_player_index = (self.current_player_index + 1) % len(self.players)
-                self.sticks_to_take = 1
-                self.showTurnInfo()
+        self.utils.printDebug(f"Player {player_id} removes {self.sticks_to_take} sticks")
+        self.sticks -= self.sticks_to_take
+        
+        if self.sticks > 0:
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
+            self.sticks_to_take = 1
+            self.showTurnInfo()
+        else:
+            self.last_player = player_id
+            self.utils.printDebug(f"Game Over - Player {player_id} loses!")
+            self.lastStickStandingEvent.set()
+
 
     def introduceGame(self) -> None:
-        self.utils.showInAllLCD(LCDMessage(top="Last Stick Stand", down="Remove sticks!"))
+        self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Short press:", down="Choose 1-2 sticks"))
+        self.utils.showInAllLCD(LCDMessage(top="If you take", down="the last stick"))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Long press:", down="Remove sticks"))
+        self.utils.showInAllLCD(LCDMessage(top="You lose!".center(16)))
         time.sleep(3)
-        self.utils.showInAllLCD(LCDMessage(top="Last stick loses!", down="Good luck!"))
+        self.utils.showInAllLCD(LCDMessage(top="Short:", down="Take 1-2 sticks"))
+        time.sleep(3)
+        self.utils.showInAllLCD(LCDMessage(top="Long:", down="Confirm"))
         time.sleep(3)
         self.startCountdown()
         time.sleep(1)
