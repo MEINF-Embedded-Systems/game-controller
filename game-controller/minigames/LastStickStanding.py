@@ -101,3 +101,5 @@ class LastStickStanding(Minigame):
         time.sleep(2)
         self.utils.showInAllLCD(LCDMessage(top="Last stick loses!", down="Good luck!"))
         time.sleep(2)
+        self.startCountdown()
+        time.sleep(1)

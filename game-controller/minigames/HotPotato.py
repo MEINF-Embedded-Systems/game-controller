@@ -74,10 +74,6 @@ class HotPotato(Minigame):
         self.utils.showInAllLCD(LCDMessage(top="The time you", down="hold it matters!"))
         time.sleep(3)
 
-    def startCountdown(self):
-        """Helper function to display the countdown sequence"""
-        self.countdown()
-
     def handleMQTTMessage(self, message: mqtt.MQTTMessage):
         if not self.hot_potato_event.is_set():  # only handle if the game is running
             player_id = int(message.topic.split("/")[2])

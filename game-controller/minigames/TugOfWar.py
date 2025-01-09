@@ -34,7 +34,7 @@ class TugOfWar(Minigame):
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Short: Pull the", down="rope"))
         time.sleep(3)
-        self.countdown()
+        self.startCountdown()
         time.sleep(1)
         self.utils.showInAllLCD(LCDMessage(top="1<-Tug of War->2".center(16), down="-" * 16))
 

@@ -51,7 +51,7 @@ minigames = {
     MinigameType.Number_Guesser: NumberGuesser,
     MinigameType.Tug_of_War: TugOfWar,
     # MinigameType.Rock_Paper_Scissors: Minigame,
-    # MinigameType.Last_Stick_Standing: LastStickStanding,
+    MinigameType.Last_Stick_Standing: LastStickStanding,
     # MinigameType.Quick_Reflexes: Minigame,
 }
 
