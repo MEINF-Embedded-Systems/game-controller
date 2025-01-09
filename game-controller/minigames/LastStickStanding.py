@@ -59,7 +59,7 @@ class LastStickStanding(Minigame):
             LCDMessage(top=f"Sticks taken: {self.sticks_to_take}", down=sticks_visual.strip()))
 
     def toggleSticksToTake(self) -> None:
-        if self.sticks >= 2:
+        if self.sticks > 2:  # Changed from >= to >
             self.sticks_to_take = 2 if self.sticks_to_take == 1 else 1
             self.utils.printDebug(f"Player {self.players[self.current_player_index].id} selected to take {self.sticks_to_take} sticks")
         else:
@@ -74,7 +74,7 @@ class LastStickStanding(Minigame):
             self.showRemainingSticks()
             time.sleep(2)
             
-            if self.sticks <= 1:  # Changed from <= 0
+            if self.sticks == 0:  # Changed from <= 1
                 self.last_player = player_id
                 self.utils.printDebug(f"Game Over - Player {player_id} loses!")
                 self.utils.showInLCD(
