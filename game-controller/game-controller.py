@@ -128,7 +128,7 @@ def managePlayersConnection(message: mqtt.MQTTMessage) -> None:
 def manageDiceRoll(message: mqtt.MQTTMessage) -> None:
     if message.topic == PLAYERS_BUTTON_TOPIC.format(id=players[turn].id):
         waitDiceEvent.set()
-        
+
 def manageGameElectionManually(message: mqtt.MQTTMessage) -> None:
     global randomGameManually
     global minigameIndex
@@ -370,7 +370,7 @@ def miniGame() -> None:
     winners: list[Player] = current_minigame.playGame()
     handleWinners(winners, winning_points)
     time.sleep(4)
-    
+
 def waitForMinigameElection() -> MinigameType:
     global randomGameManually
     global orderedMinigames
@@ -380,7 +380,6 @@ def waitForMinigameElection() -> MinigameType:
     waitEvent(waitMinigameElectionEvent)
     client.unsubscribe(PLAYERS_BUTTON_TOPIC.format(id=players[turn].id))
     return randomGameManually
-
 
 
 def handleWinners(winners: list[Player], winning_points: int) -> None:
@@ -397,48 +396,47 @@ def handleWinners(winners: list[Player], winning_points: int) -> None:
         winner = winners[0]
         winner.gainPoints(winning_points)
 
-        # Winner feedback
+        # Feedback
+        # Buzzers -> winning/losing sound
         utils.playInBuzzer(winner.id, Melodies.WINNING_SOUND)
+        utils.playInOtherBuzzer(winner.id, Melodies.LOSING_SOUND)
+
+        # You won/lost message
         utils.showInLCD(
             winner.id,
             LCDMessage(top="You won!".center(16))
         )
-        time.sleep(2)
-
-        utils.showInLCD(
-            winner.id,
-            LCDMessage(
-                top="Great job!".center(16), 
-                down="Congratulations!".center(16))
-        )
-        time.sleep(2)
-        utils.showInLCD(
-            winner.id,
-            LCDMessage(top=f"You won {winning_points} points".center(16))
-        )
-        
-        # Loser feedback
-        utils.playInOtherBuzzer(winner.id, Melodies.LOSING_SOUND)
         utils.showInOtherLCD(
             winner.id,
             LCDMessage(top="You lost".center(16))
         )
         time.sleep(2)
 
-        utils.showInOtherLCD(
+        # Congratulations message
+        utils.showInLCD(
             winner.id,
             LCDMessage(
-                top="Better luck".center(16), 
-                down="next time".center(16)),
+                top="Great job!".center(16), 
+                down="Congratulations!".center(16))
+        )
+        utils.showInOtherLCD(
+            winner.id,
+            LCDMessage(top="Better luck".center(16), down="next time".center(16)),
         )
         time.sleep(2)
 
+        # Points feedback
+        utils.showInLCD(
+            winner.id,
+            LCDMessage(top=f"You won {winning_points} points".center(16))
+        )
         utils.showInOtherLCD(
             winner.id,
             LCDMessage(
                 top=f"Player {winner.id} won".center(16), 
                 down=f"{winning_points} points".center(16))
         )
+        time.sleep(2)
 
     # MULTIPLE WINNERS -> DRAW
     else:
