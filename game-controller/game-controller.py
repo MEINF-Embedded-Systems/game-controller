@@ -303,8 +303,11 @@ def randomEvent(player: Player) -> None:
     random_event = Random().choices(events, probs)[0]
     message = LCDMessage(top="Random Event".center(16))
     utils.showInLCD(player.id, message)
-    time.sleep(4)
+    time.sleep(2)
 
+    # Selection animation
+    animate_options(utils, [str(event.name) for event in events])
+    
     # Play the selected event
     playCell(player, random_event)
     time.sleep(4)
