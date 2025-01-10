@@ -1,5 +1,5 @@
 import json
-from random import Random
+from random import Random, choice 
 import time
 from CellType import CellType
 import paho.mqtt.client as mqtt
@@ -355,6 +355,23 @@ def showStats() -> None:
     utils.showInAllLCD(message)
     time.sleep(5)
 
+def animate_options(utils: Utils, options: list[str]) -> None:
+    """Animates a selection from a list of options on the LCD screens.
+
+    Args:
+        utils: The Utils instance for interacting with the LCDs.
+        options: A list of strings representing the options.
+    """
+    animation_duration = 2  # Total animation time in seconds
+    frames_per_second = 10   # Number of options displayed per second
+    num_frames = int(animation_duration * frames_per_second)
+
+    for i in range(num_frames):
+        current_index = i % len(options)  # Cycle through all options
+        utils.showInAllLCD(LCDMessage(top=options[current_index].center(16)))
+        time.sleep(1/frames_per_second)
+
+    utils.showInAllLCD(LCDMessage(top=" ")) # Clear the LCD at the end of the animation
 
 def miniGame() -> None:
     global current_minigame
@@ -362,7 +379,11 @@ def miniGame() -> None:
     if DEBUG:
         randomGame = waitForMinigameElection()
     else:
+        # Animate the minigame selection
+        minigame_names = list(minigames.keys())
+        animate_options(utils, minigame_names)
         randomGame = Random().choice(list(minigames.keys()))
+    
     current_minigame = minigames[randomGame](players, client)
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
