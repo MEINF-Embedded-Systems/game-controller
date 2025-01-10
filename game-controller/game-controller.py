@@ -13,7 +13,7 @@ from Utils import Utils
 import Melodies
 
 # Debug mode
-DEBUG = True
+DEBUG = False
 
 # Game parameters
 NUM_PLAYERS = 2
@@ -44,7 +44,7 @@ waitMinigameElectionEvent = Event()
 # Current state of the game
 current_state = GameState.WAITING_FOR_PLAYERS
 turn = 0
-board = DebugBoard() if DEBUG else ClassicBoard()
+board = DebugBoard() if DEBUG else DebugBoard()
     
 
 minigames = {
@@ -380,11 +380,11 @@ def miniGame() -> None:
         randomGame = waitForMinigameElection()
     else:
         # Animate the minigame selection
-        minigame_names = list(minigames.keys())
+        minigame_names = list(map(lambda minigame: minigame.name, minigames.keys()))
         animate_options(utils, minigame_names)
         randomGame = Random().choice(list(minigames.keys()))
     
-    current_minigame = minigames[randomGame](players, client)
+    current_minigame: Minigame = minigames[randomGame](players, client, DEBUG)
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
     winners: list[Player] = current_minigame.playGame()

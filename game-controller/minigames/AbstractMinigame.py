@@ -10,10 +10,10 @@ general_minigame_topic = "game/minigame"
 minigame_topic = "game/minigame/{game_id}"
 
 class Minigame(ABC):
-    def __init__(self, players: list[Player], client: mqtt.Client) -> None:
+    def __init__(self, players: list[Player], client: mqtt.Client, debug: bool) -> None:
         self.players = players
         self.client = client
-        self.utils = Utils(client, players, debug=True)
+        self.utils = Utils(client, players, debug)
     
     @abstractmethod
     def playGame(self) -> list[Player]:

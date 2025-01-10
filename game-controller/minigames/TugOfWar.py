@@ -21,8 +21,8 @@ class TugOfWar(Minigame):
         - It's reminiscent of the classic "Tug of War" game ("Tira y Afloja" in Spanish).
     """
 
-    def __init__(self, players: list[Player], client: mqtt.Client) -> None:
-        super().__init__(players, client)
+    def __init__(self, players: list[Player], client: mqtt.Client, debug: bool) -> None:
+        super().__init__(players, client, debug)
         self.hits = 0
         self.tugOfWarEvent = Event()
 
