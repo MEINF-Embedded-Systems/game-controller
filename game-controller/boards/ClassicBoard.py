@@ -4,7 +4,7 @@ from boards import Board
 
 class ClassicBoard(Board):
     def __init__(self):
-        super.__init__()
+        super().__init__()
         self.size = 16
         self.cells = [
             CellType.ST,

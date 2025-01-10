@@ -15,8 +15,8 @@ class LastStickStanding(Minigame):
     Players take turns removing sticks from a pile. The player who removes the last stick loses.
     """
 
-    def __init__(self, players: list[Player], client: mqtt.Client) -> None:
-        super().__init__(players, client)
+    def __init__(self, players: list[Player], client: mqtt.Client, debug: bool) -> None:
+        super().__init__(players, client, debug)
         self.sticks = 12
         self.lastStickStandingEvent = Event()
         self.current_player_index = 0

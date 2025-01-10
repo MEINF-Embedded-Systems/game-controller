@@ -17,8 +17,8 @@ class HotPotato(Minigame):
     The player holding the "potato" when the timer expires loses.
     """
 
-    def __init__(self, players: list[Player], client: mqtt.Client) -> None:
-        super().__init__(players, client)
+    def __init__(self, players: list[Player], client: mqtt.Client, debug: bool) -> None:
+        super().__init__(players, client, debug)
         self.current_player = random.choice(players)
         self.timer_duration = random.randint(10, 30)
         self.hot_potato_event = Event()

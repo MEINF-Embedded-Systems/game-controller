@@ -19,8 +19,8 @@ class NumberGuesser(Minigame):
         - It's reminiscent of the classic "The Price is Right" game ("Precio Justo" in Spanish).
     """
 
-    def __init__(self, players: list[Player], client: mqtt.Client) -> None:
-        super().__init__(players, client)
+    def __init__(self, players: list[Player], client: mqtt.Client, debug: bool) -> None:
+        super().__init__(players, client, debug)
         self.choices = {player.id: {"finished": False, "choice": 1} for player in self.players}
         self.minGuess, self.maxGuess = 1, 5
         self.number = Random().randint(self.minGuess, self.maxGuess)
