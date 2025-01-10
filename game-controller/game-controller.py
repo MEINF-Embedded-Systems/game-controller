@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 from GameState import GameState
 from threading import Event
 from Player import Player
-from Board import Board
+from boards import *
 from Message import LCDMessage
 from minigames import *
 from Utils import Utils
@@ -44,7 +44,8 @@ waitMinigameElectionEvent = Event()
 # Current state of the game
 current_state = GameState.WAITING_FOR_PLAYERS
 turn = 0
-board = Board()
+board = DebugBoard() if DEBUG else ClassicBoard()
+    
 
 minigames = {
     MinigameType.Hot_Potato: HotPotato,
