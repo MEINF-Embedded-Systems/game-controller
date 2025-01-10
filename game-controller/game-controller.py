@@ -303,7 +303,12 @@ def randomEvent(player: Player) -> None:
     random_event = Random().choices(events, probs)[0]
     message = LCDMessage(top="Random Event".center(16))
     utils.showInLCD(player.id, message)
-    time.sleep(4)
+    time.sleep(2)
+
+    # Selection animation
+    animate_options(utils, [str(event.name) for event in events])
+    
+    # Play the selected event
     playCell(player, random_event)
     time.sleep(4)
 
@@ -362,9 +367,12 @@ def animate_options(utils: Utils, options: list[str]) -> None:
         utils: The Utils instance for interacting with the LCDs.
         options: A list of strings representing the options.
     """
-    animation_duration = 2  # Total animation time in seconds
-    frames_per_second = 10   # Number of options displayed per second
+    animation_duration = 3  # Total animation time in seconds
+    frames_per_second = 5   # Number of options displayed per second
     num_frames = int(animation_duration * frames_per_second)
+
+    # Sound effect
+    Utils.playInAllBuzzer(Melodies.SELECTION_SOUND)
 
     for i in range(num_frames):
         current_index = i % len(options)  # Cycle through all options
@@ -380,7 +388,7 @@ def miniGame() -> None:
         randomGame = waitForMinigameElection()
     else:
         # Animate the minigame selection
-        minigame_names = list(map(lambda minigame: minigame.name, minigames.keys()))
+        minigame_names = [str(game.name) for game in minigames.keys()]
         animate_options(utils, minigame_names)
         randomGame = Random().choice(list(minigames.keys()))
     
