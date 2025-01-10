@@ -27,7 +27,7 @@ class NumberGuesser(Minigame):
         self.numberGuesserEvent = Event()
 
     def introduceGame(self):
-        self.utils.showInAllLCD(LCDMessage(top="Number Guesser".center(16)))
+        self.utils.showInAllLCD(LCDMessage(top="Number Guesser!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Guess the number", down=f"between {self.minGuess} and {self.maxGuess}"))
         time.sleep(3)
