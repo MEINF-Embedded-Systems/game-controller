@@ -384,7 +384,7 @@ def miniGame() -> None:
         animate_options(utils, minigame_names)
         randomGame = Random().choice(list(minigames.keys()))
     
-    current_minigame: Minigame = minigames[randomGame](players, client, DEBUG)
+    current_minigame = minigames[randomGame](players, client, DEBUG)
     setGameState(GameState.MINIGAME)
     print(f"Playing minigame: {randomGame.name}")
     winners: list[Player] = current_minigame.playGame()

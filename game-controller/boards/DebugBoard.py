@@ -19,6 +19,6 @@ class DebugBoard(Board):
         # ]
         self.size = 2
         self.cells = [
-            CellType.ST,
+            CellType.RE,
             CellType.MG,
         ]
