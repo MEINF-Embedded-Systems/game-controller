@@ -5,6 +5,7 @@ class Player:
         self.points = 0
         self.connected = False
         self.position = 0
+        self.skipped = False
 
     def __str__(self) -> str:
         return f"Player {self.id} - Points: {self.points} - Connected: {self.connected}"
