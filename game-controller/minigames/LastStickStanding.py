@@ -29,7 +29,7 @@ class LastStickStanding(Minigame):
         self.showTurnInfo()
         self.lastStickStandingEvent.wait()
         self.client.unsubscribe(BUTTON_TOPIC.format(id="+"))
-        time.sleep(2)
+        # time.sleep(2) # Remove this sleep!!!
         winners = [player for player in self.players if player.id != self.last_player]
         return winners  # Return winners directly without additional filtering
     
