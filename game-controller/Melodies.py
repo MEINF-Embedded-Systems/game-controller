@@ -12,5 +12,7 @@ LOSING_SOUND = BuzzerMessage(tones=[392, 349, 330, 294, 262, 0], duration=[200] 
 SELECTION_SOUND = BuzzerMessage(tones=[440, 523, 659, 784, 880], duration=[100] * 4 + [200])
 
 YOUR_TURN_SOUND = BuzzerMessage(
-    tones=[784, 880, 988, 1047, 0], duration=[600, 600, 600, 600, 600]
+    tones=[784, 880, 988, 1047, 0], duration=[600, 600, 600, 600]
 )
+
+MOVE_SOUND = BuzzerMessage(tones=[880, 440, 0], duration=[50, 100])

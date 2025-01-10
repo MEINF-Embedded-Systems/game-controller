@@ -228,11 +228,13 @@ def moveWithHallSensor(player: Player, dice: int) -> None:
     setGameState(GameState.MOVING)
     client.subscribe(PLAYERS_HALL_SENSOR_TOPIC.format(id=player.id))
 
-    utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id}".center(16), down="is moving".center(16)))
-
     for i in range(dice, 0, -1):
         utils.showInLCD(player.id, LCDMessage(top="Move the meeple".center(16), down=f"{i} moves left".center(16)))
+        utils.showInOtherLCD(player.id, LCDMessage(top=f"P{player.id} moving".center(16), down=f"{i}moves left".center(16)))
         waitEvent(waitMovementEvent)
+        # Play the sound of the movement
+        utils.playInAllBuzzer(Melodies.MOVE_SOUND)
+    
     client.unsubscribe(PLAYERS_HALL_SENSOR_TOPIC.format(id=player.id))
     player.moveForward(dice, board.size)
 
