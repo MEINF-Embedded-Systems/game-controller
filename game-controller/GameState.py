@@ -8,3 +8,4 @@ class GameState(Enum):
     GAME_OVER = 3
     MINIGAME = 4
     MINIGAME_ELECTION = 5
+    MOVING = 6

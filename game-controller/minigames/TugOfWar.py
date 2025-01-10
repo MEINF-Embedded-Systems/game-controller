@@ -54,7 +54,7 @@ class TugOfWar(Minigame):
             try:
                 payload = json.loads(message.payload.decode('utf-8'))
                 if payload["type"] == "long" and not self.tugOfWarEvent.is_set():
-                    self.utils.beepPlayer(player_id, frequency=500)
+                    self.utils.beepPlayer(player_id, frequency=500)  
                     player_1, player_2 = self.players
                     if player_id == player_1.id:
                         self.hits -= 3
