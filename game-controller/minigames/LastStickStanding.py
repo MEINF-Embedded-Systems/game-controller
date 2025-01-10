@@ -6,6 +6,7 @@ from threading import Event
 from minigames import Minigame
 from Player import Player
 from Utils import Utils, LCDMessage
+from Melodies import LAST_STICK_TUNE  # Add this import at the top
 
 BUTTON_TOPIC = "game/players/{id}/components/button"
 
@@ -29,7 +30,7 @@ class LastStickStanding(Minigame):
         self.showTurnInfo()
         self.lastStickStandingEvent.wait()
         self.client.unsubscribe(BUTTON_TOPIC.format(id="+"))
-        time.sleep(2)
+        # time.sleep(2) # Remove this sleep!!!
         winners = [player for player in self.players if player.id != self.last_player]
         return winners  # Return winners directly without additional filtering
     
@@ -68,13 +69,24 @@ class LastStickStanding(Minigame):
         )
 
     def toggleSticksToTake(self) -> None:
-        if self.sticks > 2:  # Changed from >= to >
+        if self.sticks > 2:
             self.sticks_to_take = 2 if self.sticks_to_take == 1 else 1
             self.utils.printDebug(f"Player {self.players[self.current_player_index].id} selected to take {self.sticks_to_take} sticks")
         else:
             self.sticks_to_take = 1
+            current_player = self.players[self.current_player_index]
             self.utils.printDebug("Only 1 stick can be taken")
-        self.showTurnInfo()
+            # Show feedback message
+            self.utils.showInLCD(
+                current_player.id,
+                LCDMessage(
+                    top="Can't take 2!",
+                    down="You would lose"
+                )
+            )
+            # Return to game screen after 2 seconds
+            time.sleep(2)
+            self.showTurnInfo()
 
     def removeStick(self, player_id: int) -> None:
         self.utils.printDebug(f"Player {player_id} removes {self.sticks_to_take} sticks")
@@ -91,7 +103,8 @@ class LastStickStanding(Minigame):
 
 
     def introduceGame(self) -> None:
-        self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing".center(16)))
+        self.utils.playInAllBuzzer(LAST_STICK_TUNE)
+        self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="If you take", down="the last stick"))
         time.sleep(3)

@@ -6,6 +6,7 @@ from threading import Event
 from minigames import Minigame
 from Player import Player
 from Utils import Utils, LCDMessage
+from Melodies import NUMBER_GUESSER_TUNE  # Add this import at the top
 
 
 BUTTON_TOPIC = "game/players/{id}/components/button"
@@ -27,6 +28,7 @@ class NumberGuesser(Minigame):
         self.numberGuesserEvent = Event()
 
     def introduceGame(self):
+        self.utils.playInAllBuzzer(NUMBER_GUESSER_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Number Guesser!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Guess the number", down=f"between {self.minGuess} and {self.maxGuess}"))

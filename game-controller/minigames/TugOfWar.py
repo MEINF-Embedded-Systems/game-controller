@@ -7,6 +7,7 @@ from threading import Event
 from minigames import Minigame
 from Player import Player
 from Utils import Utils, LCDMessage
+from Melodies import TUG_OF_WAR_TUNE  # Add this import at the top
 
 
 BUTTON_TOPIC = "game/players/{id}/components/button"
@@ -27,7 +28,8 @@ class TugOfWar(Minigame):
         self.tugOfWarEvent = Event()
 
     def introduceGame(self):
-        self.utils.showInAllLCD(LCDMessage(top="Tug of War".center(16)))
+        self.utils.playInAllBuzzer(TUG_OF_WAR_TUNE)
+        self.utils.showInAllLCD(LCDMessage(top="Tug of War!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Pull the rope".center(16), down="to your side".center(16)))
         time.sleep(3)
