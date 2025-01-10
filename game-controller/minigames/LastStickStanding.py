@@ -91,7 +91,7 @@ class LastStickStanding(Minigame):
 
 
     def introduceGame(self) -> None:
-        self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing".center(16)))
+        self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="If you take", down="the last stick"))
         time.sleep(3)

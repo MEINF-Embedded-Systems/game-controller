@@ -430,6 +430,9 @@ def animate_options(utils: Utils, options: list[str]) -> None:
     utils.showInAllLCD(LCDMessage(top=" ")) # Clear the LCD at the end of the animation
 
 def miniGame() -> None:
+    utils.showInAllLCD(LCDMessage(top="Minigame Time!".center(16)))
+    time.sleep(4)
+
     global current_minigame
     winning_points = 10
     if DEBUG:
