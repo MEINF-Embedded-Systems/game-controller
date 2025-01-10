@@ -145,6 +145,7 @@ def manageGameElectionManually(message: mqtt.MQTTMessage) -> None:
             utils.showInAllLCD(LCDMessage(top=nextMinigame.name.center(16)))
         elif payload["type"] == "long":
             randomGameDebug = orderedMinigames[minigameIndex]
+            minigameIndex = 0
             waitMinigameElectionEvent.set()
 
 
@@ -187,8 +188,8 @@ def playTurn(player: Player) -> None:
     utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} turn!".center(16)))
     time.sleep(3)
     movePlayer(player)
-    # playCell(player, board.getCellType(player.position))
-    playCell(player, CellType.MG)
+    playCell(player, board.getCellType(player.position))
+    # playCell(player, CellType.MG)
     client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), 0)
 
 
