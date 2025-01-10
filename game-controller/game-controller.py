@@ -233,7 +233,7 @@ def moveWithHallSensor(player: Player, dice: int) -> None:
 
     for i in range(dice, 0, -1):
         utils.showInLCD(player.id, LCDMessage(top="Move the meeple".center(16), down=f"{i} moves left".center(16)))
-        utils.showInOtherLCD(player.id, LCDMessage(top=f"P{player.id} moving".center(16), down=f"{i}moves left".center(16)))
+        utils.showInOtherLCD(player.id, LCDMessage(top=f"P{player.id} moving".center(16), down=f"{i} moves left".center(16)))
         waitEvent(waitMovementEvent)
         # Play the sound of the movement
         utils.playInAllBuzzer(Melodies.MOVE_SOUND)
@@ -293,7 +293,7 @@ def gainPoints(player: Player) -> None:
     utils.playInAllBuzzer(GAIN_POINTS_TUNE)
     messagePlayer = LCDMessage(top="Gain Points".center(16))
     utils.showInLCD(player.id, messagePlayer)
-    utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Gain Points".center(16)))
+    utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Gain Points".center(16)))
     time.sleep(4)
     points = Random().randint(5, 10)
     player.gainPoints(points)
@@ -311,7 +311,7 @@ def losePoints(player: Player) -> None:
     utils.playInAllBuzzer(LOSE_POINTS_TUNE)
     messagePlayer = LCDMessage(top="Lose Points".center(16))
     utils.showInLCD(player.id, messagePlayer)
-    utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Lose Points".center(16)))
+    utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Lose Points".center(16)))
     time.sleep(4)
     points = Random().randint(1, 5)
     player.losePoints(points)
@@ -348,7 +348,7 @@ def randomEvent(player: Player) -> None:
     random_event = Random().choices(events, probs)[0]
     message = LCDMessage(top="Random Event".center(16))
     utils.showInLCD(player.id, message)
-    utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Random Event".center(16)))
+    utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Random Event".center(16)))
     time.sleep(4)
 
     # Selection animation
@@ -418,7 +418,7 @@ def showStats() -> None:
         down=f"P{players[1].id}: {players[1].points} points",
     )
     utils.showInAllLCD(message)
-    time.sleep(5)
+    time.sleep(3)
 
 def animate_options(utils: Utils, options: list[str]) -> None:
     """Animates a selection from a list of options on the LCD screens.
