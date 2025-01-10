@@ -11,6 +11,9 @@ from Message import LCDMessage
 from minigames import *
 from Utils import Utils
 import Melodies
+from Melodies import (GAIN_POINTS_TUNE, LOSE_POINTS_TUNE, MOVE_FORWARD_TUNE,
+                     MOVE_BACKWARD_TUNE, MINIGAME_CELL_TUNE, DEATH_TUNE,
+                     SKIP_TURN_TUNE, RANDOM_EVENT_TUNE)
 
 # Debug mode
 DEBUG = False
@@ -287,6 +290,7 @@ def playCell(player: Player, cell_type: CellType) -> None:
 
 
 def gainPoints(player: Player) -> None:
+    utils.playInAllBuzzer(GAIN_POINTS_TUNE)
     messagePlayer = LCDMessage(top="Gain Points".center(16))
     utils.showInLCD(player.id, messagePlayer)
     utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Gain Points".center(16)))
@@ -304,6 +308,7 @@ def gainPoints(player: Player) -> None:
 
 
 def losePoints(player: Player) -> None:
+    utils.playInAllBuzzer(LOSE_POINTS_TUNE)
     messagePlayer = LCDMessage(top="Lose Points".center(16))
     utils.showInLCD(player.id, messagePlayer)
     utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Lose Points".center(16)))
@@ -318,6 +323,7 @@ def losePoints(player: Player) -> None:
 
 
 def skipTurn(player: Player) -> None:
+    utils.playInAllBuzzer(SKIP_TURN_TUNE)
     utils.showInLCD(player.id, LCDMessage(top="Skip Turn".center(16)))
     utils.showInOtherLCD(player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Skip Turn".center(16)))
     time.sleep(4)
@@ -330,6 +336,7 @@ def skipTurn(player: Player) -> None:
 
 
 def randomEvent(player: Player) -> None:
+    utils.playInAllBuzzer(RANDOM_EVENT_TUNE)
     eventProbs = {
         CellType.MF: 1 / 5,
         CellType.MB: 1 / 5,
@@ -353,6 +360,7 @@ def randomEvent(player: Player) -> None:
 
 
 def moveForward(player: Player) -> None:
+    utils.playInAllBuzzer(MOVE_FORWARD_TUNE)
     message = LCDMessage(top="Move Forward".center(16))
     utils.showInLCD(player.id, message)
     utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Move Forward".center(16)))
@@ -370,6 +378,7 @@ def moveForward(player: Player) -> None:
 
 
 def moveBackward(player: Player) -> None:
+    utils.playInAllBuzzer(MOVE_BACKWARD_TUNE)
     message = LCDMessage(top="Move Backwards".center(16))
     utils.showInLCD(player.id, message)
     utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Move Backward".center(16)))
@@ -387,6 +396,7 @@ def moveBackward(player: Player) -> None:
 
 
 def deathEvent(player: Player) -> None:
+    utils.playInAllBuzzer(DEATH_TUNE)
     message = LCDMessage(top="Death Event".center(16))
     utils.showInLCD(player.id, message)
     utils.showInOtherLCD(player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Death Event".center(16)))
@@ -432,6 +442,7 @@ def animate_options(utils: Utils, options: list[str]) -> None:
     utils.showInAllLCD(LCDMessage(top=" ")) # Clear the LCD at the end of the animation
 
 def miniGame() -> None:
+    utils.playInAllBuzzer(MINIGAME_CELL_TUNE)
     utils.showInAllLCD(LCDMessage(top="Minigame Time!".center(16)))
     time.sleep(4)
 

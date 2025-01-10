@@ -7,6 +7,7 @@ from Utils import Utils
 from threading import Event, Timer
 import json
 import random
+from Melodies import HOT_POTATO_TUNE  # Add this import at the top
 
 # MQTT Topics
 BUTTON_TOPIC = "game/players/{id}/components/button"
@@ -60,6 +61,7 @@ class HotPotato(Minigame):
         self.utils.printDebug(f"Starting player: {self.current_player.id}")
 
     def introduceGame(self):
+        self.utils.playInAllBuzzer(HOT_POTATO_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Hot Potato!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="Press button to".center(16), down="pass the potato!".center(16)))
