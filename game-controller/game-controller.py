@@ -306,7 +306,7 @@ def randomEvent(player: Player) -> None:
     time.sleep(2)
 
     # Selection animation
-    animate_options(utils, [str(event.name) for event in events])
+    animate_options(utils, [str(event.value) for event in events])
     
     # Play the selected event
     playCell(player, random_event)
@@ -372,7 +372,7 @@ def animate_options(utils: Utils, options: list[str]) -> None:
     num_frames = int(animation_duration * frames_per_second)
 
     # Sound effect
-    Utils.playInAllBuzzer(Melodies.SELECTION_SOUND)
+    utils.playInAllBuzzer(Melodies.SELECTION_SOUND)
 
     for i in range(num_frames):
         current_index = i % len(options)  # Cycle through all options
