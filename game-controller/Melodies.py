@@ -77,3 +77,9 @@ RANDOM_EVENT_TUNE = BuzzerMessage(
     tones=[523, 659, 784, 659, 523, 784, 659, 523, 0],  # Mystery pattern
     duration=[100] * 8
 )
+
+GAME_OVER_TUNE = BuzzerMessage(
+    tones=[880, 988, 1047, 880, 988, 1175, 1319, 0],  # Happy ascending
+    duration=[200, 200, 300, 200, 200, 300, 500]
+)
+    

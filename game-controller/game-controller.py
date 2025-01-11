@@ -19,7 +19,7 @@ DEBUG = False
 # Game parameters
 NUM_PLAYERS = 2
 players = [Player(i) for i in range(1, NUM_PLAYERS + 1)]
-WIN_POINTS = 100
+WIN_POINTS = 50
 
 # MQTT parameters
 CLIENT_ID = "game-controller"
@@ -159,25 +159,44 @@ def closeMqttConnection(client: mqtt.Client) -> None:
 
 def initGame() -> None:
     global turn
-    winner = None
     setGameState(GameState.PLAYING)
     utils.showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
-    utils.playInAllBuzzer(Melodies.GAME_TUNE)
+    # utils.playInAllBuzzer(Melodies.GAME_TUNE)
+    utils.playInAllBuzzer(Melodies.GAME_OVER_TUNE)
     time.sleep(5)
 
     while current_state != GameState.GAME_OVER:
         playTurn(players[turn])
+        print(players)
+        players[0].points = 55
+        players[1].points = 56
         showStats()
+        time.sleep(2)
+        checkWinner()
         turn = (turn + 1) % NUM_PLAYERS
-        time.sleep(2)   
-        if players[turn].points >= WIN_POINTS:
-            winner = players[turn]
-            setGameState(GameState.GAME_OVER)
 
-    message = LCDMessage(top="Game Over".center(16), down=f"Player {winner.id} wins!".center(16))
+def checkWinner() -> None:
+    global current_state
+    possible_winners = list(filter(lambda player: player.points >= WIN_POINTS, players))
+    print(possible_winners)
+    if len(possible_winners) == 0:
+        return
+    setGameState(GameState.GAME_OVER)
+    message = None
+    if len(possible_winners) == 1:
+        winner = possible_winners[0]
+        message = LCDMessage(top="Game Over".center(16), down=f"Player {winner.id} wins!".center(16))
+    else:
+        if possible_winners[0].points == possible_winners[1].points:
+            message = LCDMessage(top="Game Over".center(16), down="Draw!".center(16))
+        else:
+            winner = max(possible_winners, key=lambda player: player.points)
+            message = LCDMessage(top="Game Over".center(16), down=f"Player {winner.id} wins!".center(16))
+        
     utils.showInAllLCD(message)
+    utils.playInAllBuzzer(Melodies.GAME_OVER_TUNE)
     time.sleep(5)
-
+        
 
 def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
@@ -211,7 +230,8 @@ def playTurn(player: Player) -> None:
 
 def movePlayer(player: Player, steps: int) -> None:
     moveWithHallSensor(player, steps)
-    utils.showInLCD(player.id, LCDMessage(top="Moved to cell".center(16), down=f"{player.position}".center(16)))
+    player.moveForward(steps, board.size) if steps > 0 else player.moveBackward(abs(steps), board.size)
+    utils.showInLCD(player.id, LCDMessage(top="Moved to".center(16), down=f"cell {player.position}".center(16)))
     utils.showInOtherLCD(
         player.id, LCDMessage(top=f"Player {player.id} moved".center(16), down=f"to cell {player.position}".center(16))
     )
@@ -219,11 +239,11 @@ def movePlayer(player: Player, steps: int) -> None:
     time.sleep(4)
 
 
-def moveWithHallSensor(player: Player, dice: int) -> None:
+def moveWithHallSensor(player: Player, steps: int) -> None:
     setGameState(GameState.MOVING)
     client.subscribe(PLAYERS_HALL_SENSOR_TOPIC.format(id=player.id))
 
-    for i in range(dice, 0, -1):
+    for i in range(abs(steps), 0, -1):
         utils.showInLCD(player.id, LCDMessage(top="Move the meeple.".center(16), down=f"{i} moves left".center(16)))
         utils.showInOtherLCD(
             player.id, LCDMessage(top=f"P{player.id} moving.".center(16), down=f"{i} moves left".center(16))
@@ -233,8 +253,6 @@ def moveWithHallSensor(player: Player, dice: int) -> None:
         utils.playInAllBuzzer(Melodies.MOVE_SOUND)
 
     client.unsubscribe(PLAYERS_HALL_SENSOR_TOPIC.format(id=player.id))
-    player.moveForward(dice, board.size)
-
 
 def rollDice(player) -> int:
     setGameState(GameState.ROLLING_DICE)
@@ -387,7 +405,7 @@ def moveBackward(player: Player) -> None:
     )
     time.sleep(4)
     steps = Random().randint(1, 3)
-    utils.showInLCD(player.id, LCDMessage(top=f"Move {steps}".center(16), down="steps backward".center(16)))
+    utils.showInLCD(player.id, LCDMessage(top=f"Move {steps}".center(16), down="steps backwards".center(16)))
     utils.showInOtherLCD(
         player.id, LCDMessage(top=f"Player {player.id} moves".center(16), down=f"{steps} steps back".center(16))
     )
@@ -464,7 +482,7 @@ def miniGame() -> None:
 
 
 def getRandomGame() -> MinigameType:
-    game = None
+    game: MinigameType = None
     if DEBUG:
         game = waitForMinigameElection()
     else:
