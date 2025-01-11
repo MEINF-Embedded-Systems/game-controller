@@ -31,7 +31,6 @@ MQTT_PORT = 1883
 PLAYERS_CONNECTION_TOPIC = "game/players/{id}/connection"
 PLAYERS_LCD_TOPIC = "game/players/{id}/components/lcd"
 PLAYERS_BUZZER_TOPIC = "game/players/{id}/components/buzzer"
-# PLAYERS_LED_TOPIC = "game/players/{id}/components/led"
 PLAYERS_BUTTON_TOPIC = "game/players/{id}/components/button"
 PLAYERS_TURN_TOPIC = "game/players/{id}/turn"
 PLAYERS_HALL_SENSOR_TOPIC = "game/players/{id}/movement"
@@ -45,7 +44,7 @@ waitMinigameElectionEvent = Event()
 # Current state of the game
 current_state = GameState.WAITING_FOR_PLAYERS
 turn = 0
-board = DebugBoard() if DEBUG else DebugBoard()
+board = DebugBoard() if DEBUG else ClassicBoard()
 
 
 minigames = {
@@ -161,19 +160,17 @@ def initGame() -> None:
     global turn
     setGameState(GameState.PLAYING)
     utils.showInAllLCD(LCDMessage(top="Welcome to".center(16), down="The Game".center(16)))
-    # utils.playInAllBuzzer(Melodies.GAME_TUNE)
-    utils.playInAllBuzzer(Melodies.GAME_OVER_TUNE)
+    utils.playInAllBuzzer(Melodies.GAME_TUNE)
     time.sleep(5)
 
     while current_state != GameState.GAME_OVER:
         playTurn(players[turn])
         print(players)
-        players[0].points = 55
-        players[1].points = 56
         showStats()
         time.sleep(2)
         checkWinner()
         turn = (turn + 1) % NUM_PLAYERS
+
 
 def checkWinner() -> None:
     global current_state
@@ -192,11 +189,11 @@ def checkWinner() -> None:
         else:
             winner = max(possible_winners, key=lambda player: player.points)
             message = LCDMessage(top="Game Over".center(16), down=f"Player {winner.id} wins!".center(16))
-        
+
     utils.showInAllLCD(message)
     utils.playInAllBuzzer(Melodies.GAME_OVER_TUNE)
     time.sleep(5)
-        
+
 
 def playTurn(player: Player) -> None:
     print(f"Player {player.id} turn!")
@@ -222,8 +219,8 @@ def playTurn(player: Player) -> None:
     time.sleep(3)
 
     # Roll the dice and play the turn
-    dice = rollDice(player)
-    movePlayer(player, dice)
+    steps = rollDice(player)
+    movePlayer(player, steps)
     playCell(player, board.getCellType(player.position))
     client.publish(PLAYERS_TURN_TOPIC.format(id=player.id), 0)
 
@@ -254,6 +251,7 @@ def moveWithHallSensor(player: Player, steps: int) -> None:
 
     client.unsubscribe(PLAYERS_HALL_SENSOR_TOPIC.format(id=player.id))
 
+
 def rollDice(player) -> int:
     setGameState(GameState.ROLLING_DICE)
 
@@ -265,10 +263,9 @@ def rollDice(player) -> int:
     client.subscribe(topic)
     waitEvent(waitDiceEvent)
     client.unsubscribe(topic)
-    result = 1
+    result = Random().randint(1, 6)
 
-    message = LCDMessage(top="Dice rolled".center(16), down=str(result).center(16))
-    utils.showInLCD(player.id, message)
+    utils.showInLCD(player.id, LCDMessage(top="Dice rolled".center(16), down=str(result).center(16)))
     utils.showInOtherLCD(
         player.id, LCDMessage(top=f"Player {player.id}".center(16), down=f"rolled {result}".center(16))
     )
@@ -494,6 +491,16 @@ def getRandomGame() -> MinigameType:
 
 
 def waitForMinigameElection() -> MinigameType:
+    """
+    Waits for the election of a minigame by subscribing to a player's button topic,
+    displaying the first minigame name on all LCDs, setting the game state to 
+    MINIGAME_ELECTION, and waiting for the minigame election event. After the event 
+    is received, it unsubscribes from the player's button topic and returns the 
+    selected minigame type.
+
+    Returns:
+        MinigameType: The type of the randomly selected minigame.
+    """
     global randomGameDebug
     global orderedMinigames
     client.subscribe(PLAYERS_BUTTON_TOPIC.format(id=players[turn].id))
@@ -505,6 +512,14 @@ def waitForMinigameElection() -> MinigameType:
 
 
 def handleWinners(winners: list[Player], winning_points: int) -> None:
+    """
+    Handles the outcome of a game by processing the winners and providing feedback.
+    Args:
+        winners (list[Player]): A list of Player objects who have won the game.
+        winning_points (int): The number of points awarded to the winners.
+    Returns:
+        None
+    """
     # NO WINNERS
     if len(winners) == 0:
         utils.showInAllLCD(LCDMessage(top="No winners".center(16), down="0 points".center(16)))
