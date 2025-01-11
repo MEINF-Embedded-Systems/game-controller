@@ -79,7 +79,29 @@ RANDOM_EVENT_TUNE = BuzzerMessage(
 )
 
 GAME_OVER_TUNE = BuzzerMessage(
-    tones=[880, 988, 1047, 880, 988, 1175, 1319, 0],  # Happy ascending
-    duration=[200, 200, 300, 200, 200, 300, 500]
+    tones=[
+        # Opening flourish
+        523, 587, 659, 784,
+        # Triumphant middle section
+        880, 988, 880, 988,
+        # Build up
+        1047, 1175, 1319,
+        # Grand finale
+        1397, 1568, 1760, 1976, 
+        # Final note and pause
+        2093, 0
+    ],
+    duration=[
+        # Opening flourish
+        150, 150, 150, 150,
+        # Triumphant middle section
+        300, 300, 300, 300,
+        # Build up
+        200, 200, 200,
+        # Grand finale
+        150, 150, 150, 300,
+        # Final note and pause
+        600
+    ]
 )
     
