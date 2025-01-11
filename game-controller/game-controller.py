@@ -424,7 +424,7 @@ def showStats() -> None:
         down=f"P{players[1].id}: {players[1].points} points",
     )
     utils.showInAllLCD(message)
-    time.sleep(5)
+    time.sleep(3)
 
 
 def animateOptions(utils: Utils, options: list[str]) -> None:
