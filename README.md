@@ -1,6 +1,6 @@
 # Game Controller for ESP32 and ESP8266
 
-This repository contains the Python-based game controller that handles the core logic for a distributed game system using ESP32 and ESP8266 devices. The game involves player meeples (ESP8266), control bases (ESP32), and this game controller orchestrating the actions and interactions.
+This repository contains the Python-based game controller that handles the core logic for a distributed game system using ESP32 and ESP01 devices. The game involves player meeples (ESP01), control bases (ESP32), and this game controller orchestrating the actions and interactions.
 
 ---
 
@@ -8,7 +8,7 @@ This repository contains the Python-based game controller that handles the core 
 
 - **Game Controller**: Written in Python, it orchestrates the game's flow, communicates with the ESP devices via MQTT, and manages player actions.
 - **Player Control Base (ESP32)**: Equipped with an LCD screen and a button for player interactions.
-- **Player Meeple (ESP8266)**: Represents a player's position or state in the game.
+- **Player Meeple (ESP01)**: Represents a player's position or state in the game.
 
 ---
 
@@ -17,10 +17,15 @@ This repository contains the Python-based game controller that handles the core 
 To run the game controller, you need the following installed:
 
 - [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
-- [Python 3.10+](https://www.python.org/downloads/) (optional, if running without Docker)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-Ensure your ESP32 and ESP8266 devices are flashed with the correct firmware for this game and connected to the same MQTT broker as the game controller.
+
+Ensure your ESP32 and ESP01 are uploaded with their respective programs, and the are configured to connect to the MQTT server.
+
+If you haven't configured your devices yet, you can find the ESP32 and ESP01 programs in the following repositories of this organization:
+- [ESP32 Game Control Base](https://github.com/MEINF-Embedded-Systems/control-base-esp32)
+- [ESP01 Player Meeple](https://github.com/MEINF-Embedded-Systems/meeple-eps01)
+
 
 ---
 
