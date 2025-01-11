@@ -28,6 +28,13 @@ class TugOfWar(Minigame):
         self.tugOfWarEvent = Event()
 
     def introduceGame(self):
+        """
+        Displays game introduction and instructions to players.
+        Plays introduction tune and explains game mechanics.
+        
+        Returns:
+            None
+        """
         self.utils.playInAllBuzzer(TUG_OF_WAR_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Tug of War!".center(16)))
         time.sleep(3)
@@ -40,6 +47,13 @@ class TugOfWar(Minigame):
         self.utils.showInAllLCD(LCDMessage(top="P1-Tug of War-P2".center(16), down="-" * 16))
 
     def playGame(self) -> list[Player]:
+        """
+        Main game loop for Tug of War minigame.
+        Players compete by pulling rope to their side.
+        
+        Returns:
+            list[Player]: List containing the winning player
+        """
         self.introduceGame()
         self.client.subscribe(BUTTON_TOPIC.format(id="+"))
         self.tugOfWarEvent.wait()
@@ -51,6 +65,16 @@ class TugOfWar(Minigame):
         return [winner]
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage) -> None:
+        """
+        Processes button presses for rope pulling mechanics.
+        Long press moves rope towards player's side.
+        
+        Args:
+            message: MQTT message containing button press information
+            
+        Returns:
+            None
+        """
         player_id = int(message.topic.split("/")[2])
         if message.topic == BUTTON_TOPIC.format(id=player_id):
             try:
@@ -71,6 +95,12 @@ class TugOfWar(Minigame):
                 pass
 
     def getRope(self):
+        """
+        Generates visual representation of rope position.
+        
+        Returns:
+            str: String showing rope position using dashes and spaces
+        """
         rope = None
         if self.hits < 0:
             hits = abs(self.hits)

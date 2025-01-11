@@ -24,6 +24,13 @@ class LastStickStanding(Minigame):
         self.sticks_to_take = 1
 
     def playGame(self) -> list[Player]:
+        """
+        Executes the main game loop for Last Stick Standing.
+        Players take turns removing 1-2 sticks until none remain.
+        
+        Returns:
+            list[Player]: List of players who didn't take the last stick
+        """
         self.utils.printDebug(f"Starting game with {self.sticks} sticks")
         self.introduceGame()
         self.client.subscribe(BUTTON_TOPIC.format(id="+"))
@@ -35,6 +42,16 @@ class LastStickStanding(Minigame):
         return winners  # Return winners directly without additional filtering
     
     def handleMQTTMessage(self, message: mqtt.MQTTMessage) -> None:
+        """
+        Processes player button presses for stick removal.
+        Short press toggles number of sticks, long press confirms selection.
+        
+        Args:
+            message: MQTT message containing button press information
+            
+        Returns:
+            None
+        """
         player_id = int(message.topic.split("/")[2])
         if message.topic == BUTTON_TOPIC.format(id=player_id) and player_id == self.players[self.current_player_index].id:
             payload = json.loads(message.payload.decode("utf-8"))
@@ -46,6 +63,13 @@ class LastStickStanding(Minigame):
                 self.removeStick(player_id)
 
     def showTurnInfo(self) -> None:
+        """
+        Updates LCD displays with current game state.
+        Shows remaining sticks and turn information to players.
+        
+        Returns:
+            None
+        """
         current_player = self.players[self.current_player_index]
         sticks_visual = "|" * self.sticks + f"{self.sticks:>2}".rjust(16 - self.sticks)
         self.utils.printDebug(f"Turn: Player {current_player.id} - Sticks remaining: {self.sticks}")
@@ -69,6 +93,13 @@ class LastStickStanding(Minigame):
         )
 
     def toggleSticksToTake(self) -> None:
+        """
+        Toggles between taking 1 or 2 sticks.
+        Only allows taking 1 stick when 2 or fewer sticks remain.
+        
+        Returns:
+            None
+        """
         if self.sticks > 2:  # Changed from >= to >
             self.sticks_to_take = 2 if self.sticks_to_take == 1 else 1
             self.utils.printDebug(f"Player {self.players[self.current_player_index].id} selected to take {self.sticks_to_take} sticks")
@@ -78,6 +109,16 @@ class LastStickStanding(Minigame):
         self.showTurnInfo()
 
     def removeStick(self, player_id: int) -> None:
+        """
+        Handles stick removal and updates game state.
+        Checks for game end condition and updates current player.
+        
+        Args:
+            player_id: ID of player removing sticks
+            
+        Returns:
+            None
+        """
         self.utils.printDebug(f"Player {player_id} removes {self.sticks_to_take} sticks")
         self.sticks -= self.sticks_to_take
         
@@ -92,6 +133,13 @@ class LastStickStanding(Minigame):
 
 
     def introduceGame(self) -> None:
+        """
+        Displays game introduction and rules to players.
+        Explains controls and winning conditions.
+        
+        Returns:
+            None
+        """
         self.utils.playInAllBuzzer(LAST_STICK_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing!".center(16)))
         time.sleep(3)

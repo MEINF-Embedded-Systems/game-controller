@@ -28,6 +28,13 @@ class HotPotato(Minigame):
         self.last_beep_time = 0
 
     def playGame(self) -> list[Player]:
+        """
+        Main game loop for Hot Potato minigame.
+        Manages timer, potato passing, and winner determination.
+        
+        Returns:
+            list[Player]: List of players who weren't holding the potato when it exploded
+        """
         self.startGameDebugInfo()
         self.introduceGame()
         self.startCountdown()
@@ -56,11 +63,25 @@ class HotPotato(Minigame):
         return winners
 
     def startGameDebugInfo(self):
+        """
+        Prints debug information about game configuration.
+        Displays timer duration and starting player.
+        
+        Returns:
+            None
+        """
         self.utils.printDebug("Starting Hot Potato minigame")
         self.utils.printDebug(f"Timer duration: {self.timer_duration}")
         self.utils.printDebug(f"Starting player: {self.current_player.id}")
 
     def introduceGame(self):
+        """
+        Displays game introduction and instructions to players.
+        Explains hot potato mechanics and passing rules.
+        
+        Returns:
+            None
+        """
         self.utils.playInAllBuzzer(HOT_POTATO_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Hot Potato!".center(16)))
         time.sleep(3)
@@ -72,6 +93,16 @@ class HotPotato(Minigame):
         time.sleep(3)
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage):
+        """
+        Processes button presses for potato passing.
+        Validates current holder before allowing pass.
+        
+        Args:
+            message: MQTT message containing button press
+            
+        Returns:
+            None
+        """
         if not self.hot_potato_event.is_set():  # Ignore button presses after the game ends
             player_id = int(message.topic.split("/")[2])
             if message.topic == BUTTON_TOPIC.format(id=player_id) and self.current_player.id == player_id:
@@ -79,6 +110,13 @@ class HotPotato(Minigame):
                 self.displayPotatoHolder()  
 
     def passPotato(self):
+        """
+        Handles passing the potato to the next player.
+        Updates current holder and provides feedback.
+        
+        Returns:
+            None
+        """
         # Update the current player
         current_player_index = self.players.index(self.current_player)
         next_player_index = (current_player_index + 1) % len(self.players)
@@ -89,6 +127,13 @@ class HotPotato(Minigame):
         self.utils.beepPlayer(self.current_player.id, duration_ms=200, frequency=500)
 
     def explodePotato(self):
+        """
+        Handles end of game when timer expires.
+        Triggers explosion effects and stops game.
+        
+        Returns:
+            None
+        """
         # Set the event to stop the game
         self.hot_potato_event.set() 
         self.utils.printDebug("BOOM! The potato exploded!")
@@ -103,6 +148,13 @@ class HotPotato(Minigame):
         time.sleep(3)
 
     def scheduleBeep(self):
+        """
+        Manages warning beeps that increase in frequency.
+        Beep interval decreases as timer runs down.
+        
+        Returns:
+            None
+        """
         time_elapsed = time.time() - self.start_time
         remaining_time = max(0, self.timer_duration - time_elapsed) # Prevent negative values
 
@@ -121,7 +173,13 @@ class HotPotato(Minigame):
 
 
     def displayPotatoHolder(self):
-        """Update the LCDs to show who has the potato"""
+        """
+        Updates LCD displays to show current potato holder.
+        Shows different messages to holder and other players.
+        
+        Returns:
+            None
+        """
         self.utils.showInLCD(
             self.current_player.id,
             LCDMessage(top="You have".center(16), down="the potato!".center(16)),
