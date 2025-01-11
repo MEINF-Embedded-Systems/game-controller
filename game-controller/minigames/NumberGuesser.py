@@ -28,6 +28,13 @@ class NumberGuesser(Minigame):
         self.numberGuesserEvent = Event()
 
     def introduceGame(self):
+        """
+        Displays game introduction and instructions to players.
+        Explains number range and button controls.
+        
+        Returns:
+            None
+        """
         self.utils.playInAllBuzzer(NUMBER_GUESSER_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Number Guesser!".center(16)))
         time.sleep(3)
@@ -40,6 +47,13 @@ class NumberGuesser(Minigame):
         self.utils.showInAllLCD(LCDMessage(top="Current number".center(16), down="-> 1 <-".center(16)))
 
     def playGame(self) -> list[Player]:
+        """
+        Main game loop for Number Guesser minigame.
+        Players try to guess a hidden number without going over.
+        
+        Returns:
+            list[Player]: List of players who guessed closest without exceeding
+        """
         self.utils.printDebug(f"The chosen number is: {self.number}")
         self.introduceGame()
         self.client.subscribe(BUTTON_TOPIC.format(id="+"))
@@ -59,6 +73,16 @@ class NumberGuesser(Minigame):
         return winners
 
     def handleMQTTMessage(self, message: mqtt.MQTTMessage) -> None:
+        """
+        Processes button presses for number selection.
+        Short press increments number, long press confirms selection.
+        
+        Args:
+            message: MQTT message containing button press information
+            
+        Returns:
+            None
+        """
         player_id = int(message.topic.split("/")[2])
         if message.topic == BUTTON_TOPIC.format(id=player_id):
             payload = json.loads(message.payload.decode("utf-8"))
