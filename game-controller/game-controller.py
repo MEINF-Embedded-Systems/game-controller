@@ -224,9 +224,9 @@ def moveWithHallSensor(player: Player, dice: int) -> None:
     client.subscribe(PLAYERS_HALL_SENSOR_TOPIC.format(id=player.id))
 
     for i in range(dice, 0, -1):
-        utils.showInLCD(player.id, LCDMessage(top="Move the meeple".center(16), down=f"{i} moves left".center(16)))
+        utils.showInLCD(player.id, LCDMessage(top="Move the meeple.".center(16), down=f"{i} moves left".center(16)))
         utils.showInOtherLCD(
-            player.id, LCDMessage(top=f"P{player.id} moving".center(16), down=f"{i}moves left".center(16))
+            player.id, LCDMessage(top=f"P{player.id} moving.".center(16), down=f"{i} moves left".center(16))
         )
         waitEvent(waitMovementEvent)
         # Play the sound of the movement
@@ -252,7 +252,7 @@ def rollDice(player) -> int:
     message = LCDMessage(top="Dice rolled".center(16), down=str(result).center(16))
     utils.showInLCD(player.id, message)
     utils.showInOtherLCD(
-        player.id, LCDMessage(top=f"Player {player.id} rolled".center(16), down=str(result).center(16))
+        player.id, LCDMessage(top=f"Player {player.id}".center(16), down=f"rolled {result}".center(16))
     )
     time.sleep(4)
     return result
@@ -290,7 +290,7 @@ def gainPoints(player: Player) -> None:
     messagePlayer = LCDMessage(top="Gain Points".center(16))
     utils.showInLCD(player.id, messagePlayer)
     utils.showInOtherLCD(
-        player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Gain Points".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Gain Points".center(16))
     )
     time.sleep(4)
     points = Random().randint(5, 10)
@@ -310,7 +310,7 @@ def losePoints(player: Player) -> None:
     messagePlayer = LCDMessage(top="Lose Points".center(16))
     utils.showInLCD(player.id, messagePlayer)
     utils.showInOtherLCD(
-        player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Lose Points".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Lose Points".center(16))
     )
     time.sleep(4)
     points = Random().randint(1, 5)
@@ -351,7 +351,7 @@ def randomEvent(player: Player) -> None:
     message = LCDMessage(top="Random Event".center(16))
     utils.showInLCD(player.id, message)
     utils.showInOtherLCD(
-        player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Random Event".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Random Event".center(16))
     )
     time.sleep(4)
 
@@ -360,14 +360,13 @@ def randomEvent(player: Player) -> None:
 
     # Play the selected event
     playCell(player, random_event)
-    time.sleep(4)
 
 
 def moveForward(player: Player) -> None:
     utils.playInAllBuzzer(Melodies.MOVE_FORWARD_TUNE)
     utils.showInLCD(player.id, LCDMessage(top="Move Forward".center(16)))
     utils.showInOtherLCD(
-        player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Move Forward".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Move Forward".center(16))
     )
     time.sleep(4)
     steps = Random().randint(1, 3)
@@ -378,25 +377,23 @@ def moveForward(player: Player) -> None:
     time.sleep(4)
     movePlayer(player, steps)
     playCell(player, board.getCellType(player.position))
-    time.sleep(4)
 
 
 def moveBackward(player: Player) -> None:
     utils.playInAllBuzzer(Melodies.MOVE_BACKWARD_TUNE)
     utils.showInLCD(player.id, LCDMessage(top="Move Backwards".center(16)))
     utils.showInOtherLCD(
-        player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Move Backward".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Move Backward".center(16))
     )
     time.sleep(4)
     steps = Random().randint(1, 3)
     utils.showInLCD(player.id, LCDMessage(top=f"Move {steps}".center(16), down="steps backward".center(16)))
     utils.showInOtherLCD(
-        player.id, LCDMessage(top=f"Player {player.id}".center(16), down=f"moves {steps} steps back".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} moves".center(16), down=f"{steps} steps back".center(16))
     )
     time.sleep(4)
     movePlayer(player, -steps)
     playCell(player, board.getCellType(player.position))
-    time.sleep(4)
 
 
 def deathEvent(player: Player) -> None:
@@ -404,7 +401,7 @@ def deathEvent(player: Player) -> None:
     message = LCDMessage(top="Death Event".center(16))
     utils.showInLCD(player.id, message)
     utils.showInOtherLCD(
-        player.id, LCDMessage(top="Player {player.id} landed".center(16), down="on Death Event".center(16))
+        player.id, LCDMessage(top=f"Player {player.id} landed".center(16), down="on Death Event".center(16))
     )
     time.sleep(4)
     message = LCDMessage(top="You died".center(16))
@@ -472,7 +469,7 @@ def getRandomGame() -> MinigameType:
         game = waitForMinigameElection()
     else:
         # Animate the minigame selection
-        minigame_names = [str(game.name) for game in minigames.keys()]
+        minigame_names = [str(game.name).replace("_", " ") for game in minigames.keys()]
         animateOptions(utils, minigame_names)
         game = Random().choice(list(minigames.keys()))
     return game

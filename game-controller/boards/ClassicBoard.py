@@ -5,7 +5,6 @@ from boards import Board
 class ClassicBoard(Board):
     def __init__(self):
         super().__init__()
-        self.size = 16
         self.cells = [
             CellType.ST,
             CellType.GP,
@@ -24,3 +23,4 @@ class ClassicBoard(Board):
             CellType.SK,
             CellType.MG,
         ]
+        self.size = len(self.cells)

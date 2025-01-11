@@ -6,7 +6,7 @@ from threading import Event
 from minigames import Minigame
 from Player import Player
 from Utils import Utils, LCDMessage
-from Melodies import LAST_STICK_STANDING_TUNE  
+from Melodies import LAST_STICK_TUNE  
 
 BUTTON_TOPIC = "game/players/{id}/components/button"
 
@@ -92,7 +92,7 @@ class LastStickStanding(Minigame):
 
 
     def introduceGame(self) -> None:
-        self.utils.playInAllBuzzer(LAST_STICK_STANDING_TUNE)
+        self.utils.playInAllBuzzer(LAST_STICK_TUNE)
         self.utils.showInAllLCD(LCDMessage(top="Last Stick".center(16), down="Standing!".center(16)))
         time.sleep(3)
         self.utils.showInAllLCD(LCDMessage(top="If you take", down="the last stick"))
